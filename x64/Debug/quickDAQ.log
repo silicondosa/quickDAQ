@@ -1,0 +1,7 @@
+﻿  quickDAQ.cpp
+C:\Users\tyros\codebase\quickDAQ\include\stdafx.h(9,1): warning C4067:  unexpected tokens following preprocessor directive - expected a newline
+C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.cpp(14,6): warning C4101:  'deviceSerial_buffersize': unreferenced local variable
+C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.cpp(22,14): warning C4101:  'next_pch': unreferenced local variable
+quickDAQ.obj : error LNK2019: unresolved external symbol DAQmxGetDeviceAttribute referenced in function "void __cdecl enumerateNIDevices(void)" (?enumerateNIDevices@@YAXXZ)
+quickDAQ.obj : error LNK2019: unresolved external symbol DAQmxGetSystemInfoAttribute referenced in function "void __cdecl enumerateNIDevices(void)" (?enumerateNIDevices@@YAXXZ)
+C:\Users\tyros\codebase\quickDAQ\x64\Debug\quickDAQ.exe : fatal error LNK1120: 2 unresolved externals
