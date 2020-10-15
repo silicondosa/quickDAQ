@@ -16,7 +16,7 @@ long						NIDAQmxErrorCode;
 quickDAQStatusModes			quickDAQStatus;
 
 // NI-DAQmx specific declarations
-char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN];
+char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN] = DAQMX_DEF_DEV_PREFIX;
 unsigned int				DAQmxEnumerated = 0;
 long						DAQmxErrorCode = 0;
 NIdefaults					DAQmxDefaults;
@@ -80,10 +80,10 @@ inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag)
 		break;
 	case ERROR_NIDAQMX:
 		if (printFlag != 0) {
-			fprintf(ERRSTREAM, "QuickDAQ library: ERROR %d: NI-DAQmx has generated error code %l.\n", (int)newError, NIDAQmxErrorCode);
+			fprintf(ERRSTREAM, "QuickDAQ library: ERROR %d: NI-DAQmx has generated error code %ld.\n", (int)newError, NIDAQmxErrorCode);
 			char NIerrorString[1000];
 			DAQmxGetErrorString(NIDAQmxErrorCode, NIerrorString, sizeof(NIerrorString));
-			fprintf(ERRSTREAM, "QuickDAQ library: NI-DAQmx Error %l: %s\n", NIDAQmxErrorCode, NIerrorString);
+			fprintf(ERRSTREAM, "QuickDAQ library: NI-DAQmx Error %ld: %s\n", NIDAQmxErrorCode, NIerrorString);
 		}
 			break;
 	case ERROR_DEVCHANGE:
@@ -195,7 +195,7 @@ void enumerateNIDevices()
 		
 			// Extract device number from device name, copy both into device object
 		strcpy_s(newDev->devName, sizeof(newDev->devName), devName);
-		newDev->devNum = strtol(&(devName[8]), NULL, 10);
+		newDev->devNum = strtol(&(devName[strlen(DAQmxDevPrefix)]), NULL, 10);
 
 			// Extract device type and copy to dev obj
 		devicetype_buffersize = DAQmxGetDeviceAttribute(devName, DAQmx_Dev_ProductType, NULL);

@@ -1,4 +1,6 @@
-﻿  quickDAQ.c
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(83,14): warning C4101:  'newDevElem': unreferenced local variable
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(79,6): warning C4101:  'devicesernum_buffersize': unreferenced local variable
+﻿  main.c
+  quickDAQ.c
+C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(154,14): warning C4101:  'newDevElem': unreferenced local variable
+  Generating Code...
+C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(150,6): warning C4101:  'devicesernum_buffersize': unreferenced local variable
   quickDAQ.vcxproj -> C:\Users\tyros\codebase\quickDAQ\Debug\quickDAQ.exe
