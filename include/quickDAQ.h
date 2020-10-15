@@ -4,6 +4,7 @@
 #define QUICKDAQ_H
 
 #include <ansi_c.h>
+#include <cLinkedList.h>
 #include <NIDAQmx.h>
 #include <macrodef.h>
 #include <msunistd.h>
@@ -25,11 +26,11 @@
 #define DAQMX_MAX_DEV_CNT			14
 #define DAQMX_MAX_DEV_PREFIX_LEN	14
 #define DAQMX_DEF_DEV_PREFIX		"PXI1Slot"
-#define DAQMX_MAX_DEV_STR_LEN		DAQMX_MAX_DEV_PREFIX_LEN + 2
+#define DAQMX_MAX_DEV_STR_LEN		DAQMX_MAX_DEV_PREFIX_LEN + 2 + 1
 
 //DAQmx pin constants
 #define DAQMX_MAX_PIN_CNT			32
-#define DAQMX_MAX_PIN_STR_LEN		16
+#define DAQMX_MAX_PIN_STR_LEN		16 + 1
 
 //-----------------------
 // quickDAQ TypeDef List
@@ -39,6 +40,8 @@
 * Enumerates the list of possible status modes of the quickDAQ library as set in 'quickDAQStatus'.
 */
 typedef enum _quickDAQStatusModes {
+	/*! Indicates that quickDAQ has entered an unknown mode*/
+	STATUS_UNKNOWN = -99,
 	/*! Indicates that quickDAQ is nascent and uninitialized.*/
 	STATUS_NASCENT = -2,
 	/*! Indicates that quickDAQ has been initialized and ready to configure with active I/O.*/
@@ -55,6 +58,8 @@ typedef enum _quickDAQStatusModes {
  * Enumerates the list of error codes of the quickDAQ library as set in 'quickDAQError'.
  */
 typedef enum _quickDAQErrorCodes {
+	/*! Library has encountered an unknown error*/
+	ERROR_UNKNOWN = -99,
 	/*! Library is not ready to run. Configure library, sample clock and pin mode first!*/
 	ERROR_NOTREADY = -7,
 	/*! A feature or functionality that is unsupported by quickDAQ requested.*/
@@ -67,7 +72,7 @@ typedef enum _quickDAQErrorCodes {
 	ERROR_DEVCHANGE = -3,
 	/*! No NI-DAQmx devices detected by quickDAQ library.*/
 	ERROR_NODEVICES = -2,
-	/*! Pin and task configuratoin may be altered only in the preconfigure state.*/
+	/*! Pin and task configuration may be altered only in the preconfigure state.*/
 	ERROR_NOTCONFIG = -1,
 	/*! No error has occured.*/
 	ERROR_NONE = 0,
@@ -107,6 +112,44 @@ typedef enum _IO_Direction {
 	OUTPUT = 1,
 	INOUT = 2
 }IO_Direction;
+
+/*!
+* Defines details on a device pin/channel.
+*/
+typedef struct _pinInfo {
+	bool				isPinValid;
+	unsigned int		pinNum;
+	IOmodes				pinIOMode;
+	IO_Direction		pinDir;
+	TaskHandle			*pinTask;
+}pinInfo;
+
+/*!
+ * Defined details of each device enumerated.
+*/
+typedef struct _deviceInfo {
+	bool				isDevValid;
+	unsigned int		devNum;
+	unsigned long		devSerial;
+	char				devName[20];
+	char				devType[20];
+	bool				isDevSimulated;
+	long				devError;
+
+	// Device I/O counts and their respective 'pinInfo'.
+	unsigned int		AIcnt;
+	pinInfo				AIpins[DAQMX_MAX_PIN_CNT];
+	unsigned int		AOcnt;
+	pinInfo				AOpins[DAQMX_MAX_PIN_CNT];
+	unsigned int		DIcnt;
+	pinInfo				DIpins[DAQMX_MAX_PIN_CNT];
+	unsigned int		DOcnt;
+	pinInfo				DOpins[DAQMX_MAX_PIN_CNT];
+	unsigned int		CIcnt;
+	pinInfo				CIpins[DAQMX_MAX_PIN_CNT];
+	unsigned int		COcnt;
+	pinInfo				COpins[DAQMX_MAX_PIN_CNT];
+}deviceInfo;
 
 /*!
  * Some default values for NI-DAQmx.
@@ -164,17 +207,40 @@ typedef struct _NIdefaults {
 //------------------------------
 // quickDAQ Glabal Declarations
 //------------------------------
-extern char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN];
+extern quickDAQErrorCodes		quickDAQErrorCode;
+extern long						NIDAQmxErrorCode;
+extern quickDAQStatusModes		quickDAQStatus;
 
-extern unsigned int				EasyDAQmxFirstEnumerate;
+// NI-DAQmx specific declarations
+extern char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN];
+extern unsigned int				DAQmxEnumerated;
 extern long						DAQmxErrorCode;
+extern NIdefaults				DAQmxDefaults;
+extern deviceInfo				*DAQmxDevList;
+extern unsigned int				DAQmxDevCount;
+extern unsigned int				DAQmxMaxCount;
 
 //--------------------------------
 // quickDAQ Function Declarations
 //--------------------------------
+// support functions
 inline char* dev2string(char* strBuf, unsigned int devNum);
 char* pin2string(char* strbuf, unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
+inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
 
+// library initialization functions
+inline char* setDAQmxDevPrefix(char* newPrefix);
+void enumerateNIDevices();
+unsigned int enumerateNIDevChannels(unsigned int myDev, IOmodes IOtype, unsigned int printFlag);
+unsigned int enumerateNIDevTerminals(unsigned int deviceNumber);
+
+
+// configuration functions
+
+// library run functions
+
+// shutdown routines
+int quickDAQTerminate();
 
 #endif // !QUICKDAQ_H
 
