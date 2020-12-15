@@ -23,6 +23,11 @@ NIdefaults					DAQmxDefaults;
 deviceInfo					*DAQmxDevList = NULL;
 unsigned int				DAQmxDevCount = 0;
 unsigned int				DAQmxMaxCount = 0;
+int32						DAQmxTriggerEdge					= DAQmxDefaults.NItriggerEdge;
+samplingModes				DAQmxSampleMode						= (samplingModes) DAQmxDefaults.NIsamplingMode;
+float64						DAQmxSamplingRate					= DAQmxDefaults.NIsamplingRate;
+uInt64						DAQmxNumDataPointsPerSample			= DAQmxDefaults.NIsamplesPerCh;
+char						internal_DAQmxClockSource[DAQMX_MAX_STR_LEN] = DAQMX_SAMPLE_CLK_SRC;
 
 //-------------------------------
 // quickDAQ Function Definitions
@@ -155,6 +160,10 @@ inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
 // initialization function definitions
 inline char* setDAQmxDevPrefix(char* newPrefix)
 {
+	if (quickDAQStatus != STATUS_NASCENT || DAQmxEnumerated == 1) {
+		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Before setting new NI-DAQmx device prefix, library must be reset and devices should NOT be enumerated.\n");
+		return NULL;
+	}
 	strcpy_s(DAQmxDevPrefix, DAQMX_MAX_DEV_STR_LEN, newPrefix);
 	return DAQmxDevPrefix;
 }
@@ -175,6 +184,10 @@ void enumerateNIDevices()
 		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Reenumuerating NI-DAQmx I/O devices.\n");
 		free(DAQmxDevList);
 		DAQmxDevList = NULL;
+	}
+	else if (quickDAQStatus != STATUS_NASCENT) {
+		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Library was active and will be reset before enumuerating NI-DAQmx I/O devices.\n");
+		quickDAQTerminate();
 	}
 	DAQmxEnumerated = 1;
 
@@ -383,33 +396,17 @@ unsigned int enumerateNIDevTerminals(unsigned int deviceNumber)
 
 void setupTaskHandles()
 {
-	/*
-	char pinAddr[DAQMX_MAX_STR_LEN];
-	pin2string(pinAddr, deviceID, ioMode, pinNum);
-
-	switch (ioMode)
-	{
-	case ANALOG_IN:
-		DAQmxErrChk(DAQmxCreateAIVoltageChan((DAQmxDevList[deviceID]).AItask, pinAddr, taskLabel, 
-											DAQmxDefaults.NIterminalConf, 
-											DAQmxDefaults.AImin, DAQmxDefaults.AImax, 
-											DAQmxDefaults.NImeasureUnits, NULL));
-		break;
-	case ANALOG_OUT:
-		break;
-	case DIGITAL_IN:
-		break;
-	case DIGITAL_OUT:
-		break;
-	case CTR_ANGLE_IN:
-		break;
-	case CTR_TICK_OUT:
-		break;
-	}
-	*/
-
-	// force shutdown all NI DAQmx tasks for all devices
+	// create task handles for all NI DAQmx tasks within each valid device
 	unsigned int i = 0, j = 0;
+	if (quickDAQStatus != STATUS_NASCENT) {
+		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Library must be reset and enumerated before setting up NI-DAQmx tasks.\n");
+		return;
+	}
+	if (DAQmxEnumerated != 1) {
+		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Enumerate NI-DAQmx devices before setting up NI-DAQmx tasks.\n");
+		return;
+	}
+
 	for (i = 0; i <= DAQmxMaxCount; i++) {
 		if ((DAQmxDevList[i]).isDevValid == TRUE) {
 			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).AItask))); //AI task
@@ -421,7 +418,6 @@ void setupTaskHandles()
 			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).DOtask))); //DO task
 
 			// CI tasks
-
 			(DAQmxDevList[i]).CItask = (TaskHandle*)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(TaskHandle));
 			for (j = 0; j < (DAQmxDevList[i]).CIcnt; j++) {
 				DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).CItask[j])));
@@ -448,6 +444,84 @@ void quickDAQinit()
 }
 
 // configuration function definitions
+inline void setActiveEdgeRising()
+{
+	if (quickDAQStatus <= STATUS_INIT && quickDAQStatus != STATUS_UNKNOWN)
+		DAQmxTriggerEdge = DAQmx_Val_Rising;
+}
+
+inline void setActiveEdgeFalling()
+{
+	if (quickDAQStatus <= STATUS_INIT && quickDAQStatus != STATUS_UNKNOWN)
+		DAQmxTriggerEdge = DAQmx_Val_Falling;
+}
+
+void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *triggerSource, triggerModes triggerEdge, uInt64 numDataPointsPerSample)
+{
+	if (quickDAQStatus == STATUS_INIT) {
+		DAQmxSampleMode = sampleMode;
+		DAQmxSamplingRate = samplingRate;
+		strcpy_s(internal_DAQmxClockSource, DAQMX_MAX_STR_LEN, triggerSource);
+		DAQmxTriggerEdge = triggerEdge;
+		DAQmxNumDataPointsPerSample = numDataPointsPerSample;
+
+		unsigned int i, j, k, isSet;
+		for (i = 0; i <= DAQmxMaxCount; i++) {
+			deviceInfo* thisDev = &(DAQmxDevList[i]);
+			if (thisDev->isDevValid == TRUE) {
+				//AI task
+				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
+					if (thisDev->AIpins[k].isPinValid != 0) {
+						isSet = 1;
+						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->AItask, DAQmxClockSource, DAQmxSamplingRate,
+														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+					}
+				}
+
+				//AO task
+				for (k = 0, isSet = 0; k < thisDev->AOcnt && isSet == 0; k++) {
+					if (thisDev->AOpins[k].isPinValid != 0) {
+						isSet = 1;
+						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->AOtask, DAQmxClockSource, DAQmxSamplingRate,
+														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+					}
+				}
+
+				//DI task
+				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
+					if (thisDev->DIpins[k].isPinValid != 0) {
+						isSet = 1;
+						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DItask, DAQmxClockSource, DAQmxSamplingRate,
+														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+					}
+				}
+				
+				//DO task
+				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
+					if (thisDev->DOpins[k].isPinValid != 0) {
+						isSet = 1;
+						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DOtask, DAQmxClockSource, DAQmxSamplingRate,
+														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+					}
+				}
+				
+				// CI tasks
+				for (j = 0; j < (DAQmxDevList[i]).CIcnt; j++) {
+					DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->CItask[j], DAQmxClockSource, DAQmxSamplingRate,
+														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+				}
+
+				// CO tasks
+				for (j = 0; j < (DAQmxDevList[i]).COcnt; j++) {
+					DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->COtask[j], DAQmxClockSource, DAQmxSamplingRate,
+														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+				}
+			}
+		}
+	}
+}
+
+
 
 // library run function definitions
 

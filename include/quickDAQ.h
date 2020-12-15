@@ -32,6 +32,9 @@
 #define DAQMX_MAX_PIN_CNT			32
 #define DAQMX_MAX_PIN_STR_LEN		16 + 1
 
+//DAQmx default sample clock source
+#define DAQMX_SAMPLE_CLK_SRC		"OnboardClock"
+
 //-----------------------
 // quickDAQ TypeDef List
 //-----------------------
@@ -108,10 +111,27 @@ typedef enum _IOmodes {
  * Possible I/O directions - Input and Output, defined for easy programming.
  */
 typedef enum _IO_Direction {
-	INPUT = 0,
-	OUTPUT = 1,
-	INOUT = 2
+	INPUT	= 0,
+	OUTPUT	= 1,
+	INOUT	= 2
 }IO_Direction;
+
+/*!
+* Supported sampling modes
+*/
+typedef enum _sampling_modes {
+	FINITE		= DAQmx_Val_FiniteSamps,
+	HW_CLOCKED	= DAQmx_Val_HWTimedSinglePoint,
+	CONTINOUS	= DAQmx_Val_ContSamps
+}samplingModes;
+
+/*!
+* Supported trigger modes
+*/
+typedef enum _trigger_modes {
+	RISING	= DAQmx_Val_Rising,
+	FALLING = DAQmx_Val_Falling
+}triggerModes;
 
 /*!
 * Defines details on a device pin/channel.
@@ -166,6 +186,9 @@ typedef struct _deviceInfo {
  * Some default values for NI-DAQmx.
  */
 typedef struct _NIdefaults {
+	// Device prefix
+	char devPrefix[DAQMX_MAX_DEV_STR_LEN] = DAQMX_DEF_DEV_PREFIX;
+
 	// Analog I/O settings
 	int32	NImeasureUnits	= DAQmx_Val_Volts;
 	int32	NIterminalConf	= DAQmx_Val_RSE;
@@ -190,10 +213,12 @@ typedef struct _NIdefaults {
 	float64 angleInit		= 0.0;
 
 	// Sampling/Timing properties
+	int32	NItriggerEdge  = DAQmx_Val_Rising;
 	float64	NIsamplingRate = 1000.0;
 	int32	NIsamplesPerCh = 1;
 		// Don't use this setting for analog in. Instead, use -1 (auto)
 	int32	NIsamplingMode = DAQmx_Val_FiniteSamps;
+	char	NIclockSource[DAQMX_MAX_STR_LEN]  = DAQMX_SAMPLE_CLK_SRC;
 
 	// Real-time operation output flags
 	int32	isSampleLate	= 0;
@@ -230,6 +255,12 @@ extern NIdefaults				DAQmxDefaults;
 extern deviceInfo				*DAQmxDevList;
 extern unsigned int				DAQmxDevCount;
 extern unsigned int				DAQmxMaxCount;
+extern int32					DAQmxTriggerEdge;
+extern samplingModes			DAQmxSampleMode; 
+extern float64					DAQmxSamplingRate;
+extern uInt64					DAQmxNumDataPointsPerSample;
+extern char						internal_DAQmxClockSource[DAQMX_MAX_STR_LEN];
+const char						*DAQmxClockSource = internal_DAQmxClockSource;
 
 //--------------------------------
 // quickDAQ Function Declarations
@@ -250,7 +281,10 @@ void setupTaskHandles();
 void quickDAQinit();
 
 // configuration functions
-
+inline void setActiveEdgeRising();
+inline void setActiveEdgeFalling();
+void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char* triggerSource, int32 triggerEdge, uInt64 numDataPointsPerSample);
+void 
 
 // library run functions
 
