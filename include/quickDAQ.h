@@ -140,7 +140,7 @@ typedef struct _pinInfo {
 	bool				isPinValid;
 	unsigned int		pinNum;
 	IOmodes				pinIOMode;
-	IO_Direction		pinDir;
+	//IO_Direction		pinDir;
 	TaskHandle			*pinTask;
 }pinInfo;
 
@@ -259,8 +259,7 @@ extern int32					DAQmxTriggerEdge;
 extern samplingModes			DAQmxSampleMode; 
 extern float64					DAQmxSamplingRate;
 extern uInt64					DAQmxNumDataPointsPerSample;
-extern char						internal_DAQmxClockSource[DAQMX_MAX_STR_LEN];
-const char						*DAQmxClockSource = internal_DAQmxClockSource;
+extern char						DAQmxClockSource[DAQMX_MAX_STR_LEN];
 
 //--------------------------------
 // quickDAQ Function Declarations
@@ -283,8 +282,8 @@ void quickDAQinit();
 // configuration functions
 inline void setActiveEdgeRising();
 inline void setActiveEdgeFalling();
-void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char* triggerSource, int32 triggerEdge, uInt64 numDataPointsPerSample);
-void 
+void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char* triggerSource, triggerModes triggerEdge, uInt64 numDataPointsPerSample, bool printFlag);
+void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
 
 // library run functions
 

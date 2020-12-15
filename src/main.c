@@ -14,7 +14,26 @@ int main()
 	printf_s("\nPress a key to continue...\n");
 	getchar();
 
+	// initialize
 	quickDAQinit();
+
+	// configure channels and sample clock
+	pinMode(5, ANALOG_IN, 0);
+	pinMode(2, ANALOG_OUT, 8);
+	pinMode(2, DIGITAL_OUT, 0);
+	pinMode(3, CTR_ANGLE_IN, 0);
+
+	setSampleClockTiming(DAQmxSampleMode, DAQmxSamplingRate, DAQmxClockSource, (triggerModes) DAQmxTriggerEdge, DAQmxNumDataPointsPerSample, TRUE);
+
+	// start tasks
+	
+
+	// read/write data
+
+	//wait for HW timed sample
+
+	// end tasks
+
 	quickDAQTerminate();
 	
 }
