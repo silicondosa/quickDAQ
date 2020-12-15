@@ -500,7 +500,7 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				}
 
 				//DI task
-				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
+				for (k = 0, isSet = 0; k < thisDev->DIcnt && isSet == 0; k++) {
 					if (thisDev->DIpins[k].isPinValid == TRUE) {
 						thisDev->DItaskEnable == TRUE; isSet = 1;
 						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DItask, DAQmxClockSource, DAQmxSamplingRate,
@@ -511,13 +511,15 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				}
 				
 				//DO task
-				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
+				for (k = 0, isSet = 0; k < thisDev->DOcnt && isSet == 0; k++) {
 					if (thisDev->DOpins[k].isPinValid == TRUE) {
 						thisDev->DOtaskEnable == TRUE; isSet = 1;
-						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DOtask, DAQmxClockSource, DAQmxSamplingRate,
+						/*DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DOtask, DAQmxClockSource, DAQmxSamplingRate,
 														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+														  */
+						// DIGITAL OUT ONLY SUPPORTS ON-DEMAND DATA COLLECTION.
 						quickDAQSetStatus(STATUS_READY, FALSE);
-						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : DO%d | CLK SRC: %s\n", i, k, DAQmxClockSource);
+						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : DO%d | CLK SRC: %s\n", i, k, "ON DEMAND MODE");
 					}
 				}
 				

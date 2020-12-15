@@ -29,6 +29,7 @@ int main()
 	quickDAQstart();
 
 	// read/write data
+	//float
 
 	//wait for HW timed sample
 
