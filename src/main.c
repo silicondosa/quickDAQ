@@ -26,14 +26,16 @@ int main()
 	setSampleClockTiming(DAQmxSampleMode, DAQmxSamplingRate, DAQmxClockSource, (triggerModes) DAQmxTriggerEdge, DAQmxNumDataPointsPerSample, TRUE);
 
 	// start tasks
-	
+	quickDAQstart();
 
 	// read/write data
 
 	//wait for HW timed sample
 
 	// end tasks
+	quickDAQstop();
 
+	// Terminate library
 	quickDAQTerminate();
 	
 }

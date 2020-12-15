@@ -160,26 +160,32 @@ typedef struct _deviceInfo {
 	unsigned int		AIcnt;
 	pinInfo				AIpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			AItask;
+	bool				AItaskEnable;
 	
 	unsigned int		AOcnt;
 	pinInfo				AOpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			AOtask;
+	bool				AOtaskEnable;
 	
 	unsigned int		DIcnt;
 	pinInfo				DIpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			DItask;
+	bool				DItaskEnable;
 	
 	unsigned int		DOcnt;
 	pinInfo				DOpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			DOtask;
+	bool				DOtaskEnable;
 	
 	unsigned int		CIcnt;
 	pinInfo				CIpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle*			CItask;
+	TaskHandle			*CItask;
+	bool				*CItaskEnable;
 	
 	unsigned int		COcnt;
 	pinInfo				COpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle*			COtask;
+	TaskHandle			*COtask;
+	bool				*COtaskEnable;
 }deviceInfo;
 
 /*!
@@ -286,6 +292,8 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char* 
 void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
 
 // library run functions
+void quickDAQstart();
+void quickDAQstop();
 
 // shutdown routines
 int quickDAQTerminate();

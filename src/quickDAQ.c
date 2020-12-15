@@ -410,23 +410,29 @@ void setupTaskHandles()
 	for (i = 0; i <= DAQmxMaxCount; i++) {
 		if ((DAQmxDevList[i]).isDevValid == TRUE) {
 			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).AItask))); //AI task
-
+			(DAQmxDevList[i]).AItaskEnable = FALSE;
 			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).AOtask))); //AO task
-
+			(DAQmxDevList[i]).AOtaskEnable = FALSE;
 			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).DItask))); //DI task
-
+			(DAQmxDevList[i]).DItaskEnable = FALSE;
 			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).DOtask))); //DO task
-
+			(DAQmxDevList[i]).DOtaskEnable = FALSE;
 			// CI tasks
 			(DAQmxDevList[i]).CItask = (TaskHandle*)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(TaskHandle));
+			(DAQmxDevList[i]).CItaskEnable = (bool*)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(bool));
+
+
 			for (j = 0; j < (DAQmxDevList[i]).CIcnt; j++) {
 				DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).CItask[j])));
+				(DAQmxDevList[i]).CItaskEnable[j] = FALSE;
 			}
 
 			// CO tasks
 			(DAQmxDevList[i]).COtask = (TaskHandle*)malloc(((DAQmxDevList[i]).COcnt) * sizeof(TaskHandle));
+			(DAQmxDevList[i]).COtaskEnable = (bool*)malloc(((DAQmxDevList[i]).COcnt) * sizeof(bool));
 			for (j = 0; j < (DAQmxDevList[i]).COcnt; j++) {
 				DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).COtask[j])));
+				(DAQmxDevList[i]).COtaskEnable[j] = FALSE;
 			}
 		}
 	}
@@ -474,9 +480,10 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				//AI task
 				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
 					if (thisDev->AIpins[k].isPinValid == TRUE) {
-						isSet = 1;
+						thisDev->AItaskEnable == TRUE; isSet = 1;
 						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->AItask, DAQmxClockSource, DAQmxSamplingRate,
 														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+						quickDAQSetStatus(STATUS_READY, FALSE);
 						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : AI%d | CLK SRC: %s\n", i, k, DAQmxClockSource);
 					}
 				}
@@ -484,9 +491,10 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				//AO task
 				for (k = 0, isSet = 0; k < thisDev->AOcnt && isSet == 0; k++) {
 					if (thisDev->AOpins[k].isPinValid == TRUE) {
-						isSet = 1;
+						thisDev->AOtaskEnable == TRUE; isSet = 1;
 						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->AOtask, DAQmxClockSource, DAQmxSamplingRate,
 														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+						quickDAQSetStatus(STATUS_READY, FALSE);
 						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : AO%d | CLK SRC: %s\n", i, k, DAQmxClockSource);
 					}
 				}
@@ -494,9 +502,10 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				//DI task
 				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
 					if (thisDev->DIpins[k].isPinValid == TRUE) {
-						isSet = 1;
+						thisDev->DItaskEnable == TRUE; isSet = 1;
 						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DItask, DAQmxClockSource, DAQmxSamplingRate,
 														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+						quickDAQSetStatus(STATUS_READY, FALSE);
 						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : DI%d | CLK SRC: %s\n", i, k, DAQmxClockSource);
 					}
 				}
@@ -504,9 +513,10 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				//DO task
 				for (k = 0, isSet = 0; k < thisDev->AIcnt && isSet == 0; k++) {
 					if (thisDev->DOpins[k].isPinValid == TRUE) {
-						isSet = 1;
+						thisDev->DOtaskEnable == TRUE; isSet = 1;
 						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DOtask, DAQmxClockSource, DAQmxSamplingRate,
 														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+						quickDAQSetStatus(STATUS_READY, FALSE);
 						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : DO%d | CLK SRC: %s\n", i, k, DAQmxClockSource);
 					}
 				}
@@ -514,8 +524,10 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				// CI tasks
 				for (j = 0; j < (DAQmxDevList[i]).CIcnt; j++) {
 					if (thisDev->CIpins[j].isPinValid == TRUE) {
+						thisDev->CItaskEnable[j] == TRUE;
 						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->CItask[j], DAQmxClockSource, DAQmxSamplingRate,
 														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+						quickDAQSetStatus(STATUS_READY, FALSE);
 						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : CI%d | CLK SRC: %s\n", i, k, DAQmxClockSource);
 					}
 				}
@@ -523,13 +535,16 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				// CO tasks
 				for (j = 0; j < (DAQmxDevList[i]).COcnt; j++) {
 					if (thisDev->COpins[j].isPinValid == TRUE) {
+						thisDev->COtaskEnable[j] == TRUE;
 						DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->COtask[j], DAQmxClockSource, DAQmxSamplingRate,
 														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+						quickDAQSetStatus(STATUS_READY, FALSE);
 						if (printFlag) fprintf(ERRSTREAM, "\nDev %d : CO%d | CLK SRC: %s\n", i, k, DAQmxClockSource);
 					}
 				}
 			}
 		}
+		if (quickDAQStatus == STATUS_READY) quickDAQSetStatus(quickDAQStatus, TRUE);
 	}
 }
 
@@ -625,6 +640,47 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 }
 
 // library run function definitions
+void quickDAQstart()
+{
+	if (quickDAQStatus == STATUS_READY) {
+		quickDAQSetStatus(STATUS_RUNNING, TRUE);
+		unsigned i = 0, j = 0;
+		for (i = 0; i < DAQmxMaxCount; i++) {
+			deviceInfo* thisDev = &(DAQmxDevList[i]);
+			if (thisDev->AItaskEnable == TRUE) DAQmxErrChk(DAQmxStartTask(thisDev->AItask));
+			if (thisDev->AOtaskEnable == TRUE) DAQmxErrChk(DAQmxStartTask(thisDev->AOtask));
+			if (thisDev->DItaskEnable == TRUE) DAQmxErrChk(DAQmxStartTask(thisDev->DItask));
+			if (thisDev->DOtaskEnable == TRUE) DAQmxErrChk(DAQmxStartTask(thisDev->DOtask));
+			for (j = 0; j < thisDev->CIcnt; j++) {
+				if (thisDev->CItaskEnable[j] == TRUE) DAQmxErrChk(DAQmxStartTask(thisDev->CItask[j]));
+			}
+			for (j = 0; j < thisDev->COcnt; j++) {
+				if (thisDev->COtaskEnable[j] == TRUE) DAQmxErrChk(DAQmxStartTask(thisDev->COtask[j]));
+			}
+		}
+	}
+}
+
+void quickDAQstop()
+{
+	if (quickDAQStatus == STATUS_RUNNING) {
+		quickDAQSetStatus(STATUS_READY, TRUE);
+		unsigned i = 0, j = 0;
+		for (i = 0; i < DAQmxMaxCount; i++) {
+			deviceInfo* thisDev = &(DAQmxDevList[i]);
+			if (thisDev->AItaskEnable == TRUE) DAQmxErrChk(DAQmxStopTask(thisDev->AItask));
+			if (thisDev->AOtaskEnable == TRUE) DAQmxErrChk(DAQmxStopTask(thisDev->AOtask));
+			if (thisDev->DItaskEnable == TRUE) DAQmxErrChk(DAQmxStopTask(thisDev->DItask));
+			if (thisDev->DOtaskEnable == TRUE) DAQmxErrChk(DAQmxStopTask(thisDev->DOtask));
+			for (j = 0; j < thisDev->CIcnt; j++) {
+				if (thisDev->CItaskEnable[j] == TRUE) DAQmxErrChk(DAQmxStopTask(thisDev->CItask[j]));
+			}
+			for (j = 0; j < thisDev->COcnt; j++) {
+				if (thisDev->COtaskEnable[j] == TRUE) DAQmxErrChk(DAQmxStopTask(thisDev->COtask[j]));
+			}
+		}	
+	}
+}
 
 // shutdown function definitions
 int quickDAQTerminate()
@@ -655,6 +711,7 @@ int quickDAQTerminate()
 				DAQmxClearTask((DAQmxDevList[i]).CItask[j]);
 			}
 			free((DAQmxDevList[i]).CItask);
+			free((DAQmxDevList[i]).CItaskEnable);
 
 			// CO tasks
 			for (j = 0; j < (DAQmxDevList[i]).COcnt; j++) {
@@ -662,12 +719,14 @@ int quickDAQTerminate()
 				DAQmxClearTask((DAQmxDevList[i]).COtask[j]);
 			}
 			free((DAQmxDevList[i]).COtask);
+			free((DAQmxDevList[i]).COtaskEnable);
 		}
 	}
 
 	// Reset library status
 	quickDAQSetStatus(STATUS_NASCENT, TRUE);
 	DAQmxEnumerated = 0;
+
 	// Free device list memory
 	free(DAQmxDevList);
 	DAQmxDevList = NULL;
