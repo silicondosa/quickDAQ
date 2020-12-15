@@ -14,8 +14,8 @@ int main()
 	printf_s("\nPress a key to continue...\n");
 	getchar();
 
-	enumerateNIDevices();
-
+	quickDAQinit();
+	quickDAQTerminate();
 	
 }
 

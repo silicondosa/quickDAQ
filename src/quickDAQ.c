@@ -12,13 +12,13 @@
 // EasyDAQmx Glabal Definitions
 //------------------------------
 quickDAQErrorCodes			quickDAQErrorCode;
-long						NIDAQmxErrorCode;
+int32						NIDAQmxErrorCode;
 quickDAQStatusModes			quickDAQStatus;
 
 // NI-DAQmx specific declarations
 char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN] = DAQMX_DEF_DEV_PREFIX;
 unsigned int				DAQmxEnumerated = 0;
-long						DAQmxErrorCode = 0;
+//long						DAQmxErrorCode = 0;
 NIdefaults					DAQmxDefaults;
 deviceInfo					*DAQmxDevList = NULL;
 unsigned int				DAQmxDevCount = 0;
@@ -28,6 +28,22 @@ unsigned int				DAQmxMaxCount = 0;
 // quickDAQ Function Definitions
 //-------------------------------
 // support functions
+void DAQmxErrChk(int32 errCode)
+{
+	char errBuff[2048];
+
+	NIDAQmxErrorCode = errCode;
+
+	if (DAQmxFailed(NIDAQmxErrorCode)) {
+		DAQmxGetExtendedErrorInfo(errBuff, 2048);
+		quickDAQTerminate();
+		quickDAQSetStatus(STATUS_UNKNOWN, FALSE);
+		quickDAQSetError(ERROR_NIDAQMX, TRUE);
+		fprintf(ERRSTREAM, "NI-DAQmx Error %ld: %s\n", (long)NIDAQmxErrorCode, errBuff);
+		exit(NIDAQmxErrorCode);
+	}
+}
+
 inline char* dev2string(char* strBuf, unsigned int devNum)
 {
 	snprintf(strBuf, DAQMX_MAX_DEV_STR_LEN, "%s%d", DAQmxDevPrefix, devNum);
@@ -112,23 +128,23 @@ inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
 	switch (newStatus)
 	{
 	case STATUS_NASCENT:  
-		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS NASCENT (code %d): quickDAQ is nascent and uninitialized.", (int)newStatus);
+		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS NASCENT (code %d): quickDAQ is nascent and uninitialized.\n", (int)newStatus);
 		break;
 	case STATUS_INIT:  
-		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS INITIALIZED (code %d): quickDAQ has been initialized and ready to configure with active I/O.", (int)newStatus);
+		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS INITIALIZED (code %d): quickDAQ has been initialized and ready to configure with active I/O.\n", (int)newStatus);
 		break;
 	case STATUS_READY:  
-		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS READY (code %d): quickDAQ is ready to run. I/O, sync, clock, and trigger resources reserved.", (int)newStatus);
+		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS READY (code %d): quickDAQ is ready to run. I/O, sync, clock, and trigger resources reserved.\n", (int)newStatus);
 		break;
 	case STATUS_RUNNING:  
-		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS RUNNING (code %d): quickDAQ is running and data is being collected now.", (int)newStatus);
+		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS RUNNING (code %d): quickDAQ is running and data is being collected now.\n", (int)newStatus);
 		break;
 	case STATUS_SHUTDOWN: 
-		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS SHUTDOWN (code %d): quickDAQ has been stopped and resources freed.", (int)newStatus);
+		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS SHUTDOWN (code %d): quickDAQ has been stopped and resources freed.\n", (int)newStatus);
 		break;
 	default:
 		newStatus = STATUS_UNKNOWN;
-		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS UNKNOWN (code %d): quickDAQ in an unknown status mode.", (int)newStatus);
+		if (printFlag != 0) fprintf(ERRSTREAM, "QuickDAQ library: STATUS UNKNOWN (code %d): quickDAQ in an unknown status mode.\n", (int)newStatus);
 		break;
 	}
 	quickDAQStatus = newStatus;
@@ -139,6 +155,7 @@ inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
 // initialization function definitions
 inline char* setDAQmxDevPrefix(char* newPrefix)
 {
+	strcpy_s(DAQmxDevPrefix, DAQMX_MAX_DEV_STR_LEN, newPrefix);
 	return DAQmxDevPrefix;
 }
 
@@ -173,11 +190,6 @@ void enumerateNIDevices()
 	int is_simulated;
 	
 	//Get information about the device	
-	printf("List of devices in this computer: \n \n");
-	printf("***************************************************************************\n");
-	printf("Device Number || Device Name || Device type || Device Serial# || Simulated?\n");
-	printf("***************************************************************************\n");
-
 	buffersize = DAQmxGetSystemInfoAttribute(DAQmx_Sys_DevNames, (void *)DAQmxDevEnum);
 	DAQmxDevEnum = (char*)malloc(buffersize);
 	DAQmxDevRoot = DAQmxDevEnum;
@@ -211,24 +223,21 @@ void enumerateNIDevices()
 		// Set highest device number
 		DAQmxMaxCount = (newDev->devNum > DAQmxMaxCount) ? newDev->devNum : DAQmxMaxCount;
 
-		// TODO Copy above info into devInfo structure
-			// also enumerate and copy channel counts
-		
-		if (is_simulated == 0)
-			printf("%u		%s		%s		%ld		No\n" , newDev->devNum, newDev->devName, newDev->devType, newDev->devSerial);
-		else
-			printf("%u		%s		%s		%ld		Yes\n", newDev->devNum, newDev->devName, newDev->devType, newDev->devSerial);
-
-	}
-	printf("***************************************************************************\n");
-	printf("\n");
+			// Enumerate and copy channel counts for each I/O typr into device object
+		newDev->AIcnt = enumerateNIDevChannels(newDev->devNum, ANALOG_IN  , 0);
+		newDev->AOcnt = enumerateNIDevChannels(newDev->devNum, ANALOG_OUT  , 0);
+		newDev->DIcnt = enumerateNIDevChannels(newDev->devNum, DIGITAL_IN  , 0);
+		newDev->DOcnt = enumerateNIDevChannels(newDev->devNum, DIGITAL_OUT , 0);
+		newDev->CIcnt = enumerateNIDevChannels(newDev->devNum, CTR_ANGLE_IN, 0);
+		newDev->COcnt = enumerateNIDevChannels(newDev->devNum, CTR_TICK_OUT, 0);
+		}
 
 	// Create array of NI devices for fast access and clear linked list memory at the same time
 	DAQmxDevList = (deviceInfo*) malloc( sizeof(deviceInfo) * (DAQmxMaxCount+1) );
 		// set default validity of all elements in the array to 0
 	unsigned idx;
 	for (idx = 0; idx < DAQmxMaxCount + 1; idx++) {
-		DAQmxDevList[idx].isDevValid = 0;
+		DAQmxDevList[idx].isDevValid = FALSE;
 	}
 
 	cListElem *thisElem = cListFirstElem(newDevList);
@@ -244,6 +253,33 @@ void enumerateNIDevices()
 		thisElem = nextElem;
 		nextElem = cListNextElem(newDevList, thisElem);
 	}
+
+	// Printing
+	printf("\n");
+	printf("*** NI-DAQmx DEVICE LIST ********************************************************************************************\n");
+	printf("Device Number ||    Device Name || Device type || Device Serial # || Sim? || Pins: AI  | AO  | DI  | DO  | CIN | COUT\n");
+	printf("*********************************************************************************************************************\n");
+
+	for (idx = 0; idx < DAQmxMaxCount + 1; idx++) {
+		newDev = &(DAQmxDevList[idx]);
+		if (newDev->isDevValid == TRUE) {
+			if (newDev->isDevSimulated == FALSE)
+				printf("%13u || %14s || %11s || %15ld || Nope || ", newDev->devNum, newDev->devName, newDev->devType, newDev->devSerial);
+			else
+				printf("%13u || %14s || %11s || %15ld || Yeah || ", newDev->devNum, newDev->devName, newDev->devType, newDev->devSerial);
+			
+			printf("      %3d | %3d | %3d | %3d | %3d | %3d\n", newDev->AIcnt, newDev->AOcnt, newDev->DIcnt, newDev->DOcnt, newDev->CIcnt, newDev->COcnt);
+		}
+	}
+	printf("*********************************************************************************************************************\n");
+	printf("\n");
+	
+	printf("*** DEVICE ENUMERATION DIAGNOSTICS **********************************************************************************\n");
+	printf("Number of device IDs: %u\n", DAQmxMaxCount + 1);
+	printf("Device ID array - Start ID: 0 | End ID: %u\n", DAQmxMaxCount);
+	printf("Number of valid devices: %lu\n", DAQmxDevCount);
+	printf("*********************************************************************************************************************\n");
+	printf("\n");
 	
 	// Local dynamic memory cleanup
 	free(DAQmxDevRoot);
@@ -331,13 +367,84 @@ unsigned int enumerateNIDevTerminals(unsigned int deviceNumber)
 	rem_data = data;
 	unsigned int i = 0;
 
+	printf("\n");
+	printf("*** DEV%3d TERMINAL ENUMERATION DIAGNOSTICS *************************************************************************\n", deviceNumber);
 	for (oneCh_data = strtok_s(rem_data, ",", &rem_data); oneCh_data != NULL; oneCh_data = strtok_s(rem_data, ",", &rem_data), i++) {
 		fprintf(LOGSTREAM, "Terminal %d: %s\n", i + 1, oneCh_data);
 	}
 
 	fprintf(LOGSTREAM, "\n\n %s - %d Terminals (%d characters)\n\n", myDev, i, charLength);
-
+	printf("*********************************************************************************************************************\n");
+	printf("\n");
+	
 	return i;
+}
+
+
+void setupTaskHandles()
+{
+	/*
+	char pinAddr[DAQMX_MAX_STR_LEN];
+	pin2string(pinAddr, deviceID, ioMode, pinNum);
+
+	switch (ioMode)
+	{
+	case ANALOG_IN:
+		DAQmxErrChk(DAQmxCreateAIVoltageChan((DAQmxDevList[deviceID]).AItask, pinAddr, taskLabel, 
+											DAQmxDefaults.NIterminalConf, 
+											DAQmxDefaults.AImin, DAQmxDefaults.AImax, 
+											DAQmxDefaults.NImeasureUnits, NULL));
+		break;
+	case ANALOG_OUT:
+		break;
+	case DIGITAL_IN:
+		break;
+	case DIGITAL_OUT:
+		break;
+	case CTR_ANGLE_IN:
+		break;
+	case CTR_TICK_OUT:
+		break;
+	}
+	*/
+
+	// force shutdown all NI DAQmx tasks for all devices
+	unsigned int i = 0, j = 0;
+	for (i = 0; i <= DAQmxMaxCount; i++) {
+		if ((DAQmxDevList[i]).isDevValid == TRUE) {
+			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).AItask))); //AI task
+
+			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).AOtask))); //AO task
+
+			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).DItask))); //DI task
+
+			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).DOtask))); //DO task
+
+			// CI tasks
+
+			(DAQmxDevList[i]).CItask = (TaskHandle*)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(TaskHandle));
+			for (j = 0; j < (DAQmxDevList[i]).CIcnt; j++) {
+				DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).CItask[j])));
+			}
+
+			// CO tasks
+			(DAQmxDevList[i]).COtask = (TaskHandle*)malloc(((DAQmxDevList[i]).COcnt) * sizeof(TaskHandle));
+			for (j = 0; j < (DAQmxDevList[i]).COcnt; j++) {
+				DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).COtask[j])));
+			}
+		}
+	}
+
+
+}
+
+void quickDAQinit()
+{
+	char newPrefix[] = DAQMX_DEF_DEV_PREFIX;
+	setDAQmxDevPrefix(newPrefix);
+	enumerateNIDevices();
+	setupTaskHandles();
+	quickDAQSetStatus(STATUS_INIT, TRUE);
 }
 
 // configuration function definitions
@@ -347,10 +454,44 @@ unsigned int enumerateNIDevTerminals(unsigned int deviceNumber)
 // shutdown function definitions
 int quickDAQTerminate()
 {
-	// force shutdown all NI DAQmx tasks
-	
+	// force shutdown all NI DAQmx tasks for all devices
+	unsigned int i = 0, j = 0;
+	for (i = 0; i <= DAQmxMaxCount; i++) {
+		if ((DAQmxDevList[i]).isDevValid == TRUE) {
+			//AI task
+			DAQmxStopTask((DAQmxDevList[i]).AItask);
+			DAQmxClearTask((DAQmxDevList[i]).AItask);
+
+			//AO task
+			DAQmxStopTask((DAQmxDevList[i]).AOtask);
+			DAQmxClearTask((DAQmxDevList[i]).AOtask);
+
+			//DI task
+			DAQmxStopTask((DAQmxDevList[i]).DItask);
+			DAQmxClearTask((DAQmxDevList[i]).DItask);
+
+			//DO task
+			DAQmxStopTask((DAQmxDevList[i]).DOtask);
+			DAQmxClearTask((DAQmxDevList[i]).DOtask);
+
+			// CI tasks
+			for (j = 0; j < (DAQmxDevList[i]).CIcnt; j++) {
+				DAQmxStopTask((DAQmxDevList[i]).CItask[j]);
+				DAQmxClearTask((DAQmxDevList[i]).CItask[j]);
+			}
+			free((DAQmxDevList[i]).CItask);
+
+			// CO tasks
+			for (j = 0; j < (DAQmxDevList[i]).COcnt; j++) {
+				DAQmxStopTask((DAQmxDevList[i]).COtask[j]);
+				DAQmxClearTask((DAQmxDevList[i]).COtask[j]);
+			}
+			free((DAQmxDevList[i]).COtask);
+		}
+	}
+
 	// Reset library status
-	
+	quickDAQSetStatus(STATUS_NASCENT, TRUE);
 
 	// Free device list memory
 	free(DAQmxDevList);

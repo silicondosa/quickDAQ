@@ -139,16 +139,27 @@ typedef struct _deviceInfo {
 	// Device I/O counts and their respective 'pinInfo'.
 	unsigned int		AIcnt;
 	pinInfo				AIpins[DAQMX_MAX_PIN_CNT];
+	TaskHandle			AItask;
+	
 	unsigned int		AOcnt;
 	pinInfo				AOpins[DAQMX_MAX_PIN_CNT];
+	TaskHandle			AOtask;
+	
 	unsigned int		DIcnt;
 	pinInfo				DIpins[DAQMX_MAX_PIN_CNT];
+	TaskHandle			DItask;
+	
 	unsigned int		DOcnt;
 	pinInfo				DOpins[DAQMX_MAX_PIN_CNT];
+	TaskHandle			DOtask;
+	
 	unsigned int		CIcnt;
 	pinInfo				CIpins[DAQMX_MAX_PIN_CNT];
+	TaskHandle*			CItask;
+	
 	unsigned int		COcnt;
 	pinInfo				COpins[DAQMX_MAX_PIN_CNT];
+	TaskHandle*			COtask;
 }deviceInfo;
 
 /*!
@@ -208,13 +219,13 @@ typedef struct _NIdefaults {
 // quickDAQ Glabal Declarations
 //------------------------------
 extern quickDAQErrorCodes		quickDAQErrorCode;
-extern long						NIDAQmxErrorCode;
+extern int32					NIDAQmxErrorCode;
 extern quickDAQStatusModes		quickDAQStatus;
 
 // NI-DAQmx specific declarations
 extern char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN];
 extern unsigned int				DAQmxEnumerated;
-extern long						DAQmxErrorCode;
+//extern long						DAQmxErrorCode;
 extern NIdefaults				DAQmxDefaults;
 extern deviceInfo				*DAQmxDevList;
 extern unsigned int				DAQmxDevCount;
@@ -224,18 +235,22 @@ extern unsigned int				DAQmxMaxCount;
 // quickDAQ Function Declarations
 //--------------------------------
 // support functions
+void DAQmxErrChk(int32 errCode);
 inline char* dev2string(char* strBuf, unsigned int devNum);
 char* pin2string(char* strbuf, unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
 inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
+inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
 
 // library initialization functions
 inline char* setDAQmxDevPrefix(char* newPrefix);
 void enumerateNIDevices();
 unsigned int enumerateNIDevChannels(unsigned int myDev, IOmodes IOtype, unsigned int printFlag);
 unsigned int enumerateNIDevTerminals(unsigned int deviceNumber);
-
+void setupTaskHandles();
+void quickDAQinit();
 
 // configuration functions
+
 
 // library run functions
 
