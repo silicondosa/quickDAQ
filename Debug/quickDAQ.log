@@ -1,10 +1,6 @@
-﻿  quickDAQ.c
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(180,14): warning C4101:  'newDevElem': unreferenced local variable
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(176,6): warning C4101:  'devicesernum_buffersize': unreferenced local variable
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(483,29): warning C4553:  '==': result of expression not used; did you intend '='?
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(494,29): warning C4553:  '==': result of expression not used; did you intend '='?
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(505,29): warning C4553:  '==': result of expression not used; did you intend '='?
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(516,29): warning C4553:  '==': result of expression not used; did you intend '='?
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(529,32): warning C4553:  '==': result of expression not used; did you intend '='?
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(540,32): warning C4553:  '==': result of expression not used; did you intend '='?
+﻿  main.c
+C:\Users\tyros\codebase\quickDAQ\include\macrodef.h(27,1): warning C4005:  'max': macro redefinition
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\shared\minwindef.h(193): message :  see previous definition of 'max'
+C:\Users\tyros\codebase\quickDAQ\include\macrodef.h(34,1): warning C4005:  'min': macro redefinition
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\shared\minwindef.h(197): message :  see previous definition of 'min'
   quickDAQ.vcxproj -> C:\Users\tyros\codebase\quickDAQ\Debug\quickDAQ.exe

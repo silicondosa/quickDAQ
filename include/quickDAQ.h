@@ -33,7 +33,8 @@
 #define DAQMX_MAX_PIN_STR_LEN		16 + 1
 
 //DAQmx default sample clock source
-#define DAQMX_SAMPLE_CLK_SRC		"OnboardClock"
+#define DAQMX_SAMPLE_CLK_SRC_FINITE		"OnboardClock"
+#define DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED	"/PXI1Slot5/ai/SampleClock"
 
 //-----------------------
 // quickDAQ TypeDef List
@@ -110,19 +111,26 @@ typedef enum _IOmodes {
 /*!
  * Possible I/O directions - Input and Output, defined for easy programming.
  */
+/*
 typedef enum _IO_Direction {
 	INPUT	= 0,
 	OUTPUT	= 1,
 	INOUT	= 2
 }IO_Direction;
+*/
 
 /*!
 * Supported sampling modes
 */
 typedef enum _sampling_modes {
+	/*! Sampling mode: FINITE - acquire a finite number of samples.*/
 	FINITE		= DAQmx_Val_FiniteSamps,
+	/*! Sampling mode: HW_CLOCKED - acquire hardware-timed samples, one at a time.*/
 	HW_CLOCKED	= DAQmx_Val_HWTimedSinglePoint,
-	CONTINOUS	= DAQmx_Val_ContSamps
+	/*! Sampling mode: CONTINUOUS - continuously acquire samples.*/
+	CONTINUOUS	= DAQmx_Val_ContSamps,
+	/*! Sampling mode: ON_DEMAND - acquire samples on demand.*/
+	ON_DEMAND	= DAQmx_Val_OnDemand
 }samplingModes;
 
 /*!
@@ -160,31 +168,37 @@ typedef struct _deviceInfo {
 	unsigned int		AIcnt;
 	pinInfo				AIpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			AItask;
+	unsigned			AItaskDataLen;
 	bool				AItaskEnable;
 	
 	unsigned int		AOcnt;
 	pinInfo				AOpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			AOtask;
+	unsigned			AOtaskDataLen;
 	bool				AOtaskEnable;
 	
 	unsigned int		DIcnt;
 	pinInfo				DIpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			DItask;
+	unsigned			DItaskDataLen;
 	bool				DItaskEnable;
 	
 	unsigned int		DOcnt;
 	pinInfo				DOpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			DOtask;
+	unsigned			DOtaskDataLen;
 	bool				DOtaskEnable;
 	
 	unsigned int		CIcnt;
 	pinInfo				CIpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			*CItask;
+	unsigned			*CItaskDataLen;
 	bool				*CItaskEnable;
 	
 	unsigned int		COcnt;
 	pinInfo				COpins[DAQMX_MAX_PIN_CNT];
 	TaskHandle			*COtask;
+	unsigned			*COtaskDataLen;
 	bool				*COtaskEnable;
 }deviceInfo;
 
@@ -223,8 +237,9 @@ typedef struct _NIdefaults {
 	float64	NIsamplingRate = 1000.0;
 	int32	NIsamplesPerCh = 1;
 		// Don't use this setting for analog in. Instead, use -1 (auto)
-	int32	NIsamplingMode = DAQmx_Val_FiniteSamps;
-	char	NIclockSource[DAQMX_MAX_STR_LEN]  = DAQMX_SAMPLE_CLK_SRC;
+	int32	NIAIsampsPerCh = -1;
+	int32	NIsamplingMode = DAQmx_Val_HWTimedSinglePoint; //DAQmx_Val_FiniteSamps; // SCR
+	char	NIclockSource[DAQMX_MAX_STR_LEN] = /*DAQMX_SAMPLE_CLK_SRC_FINITE;*/ DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED;// (DAQmxSampleMode == DAQmx_Val_HWTimedSinglePoint) ? DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED : DAQMX_SAMPLE_CLK_SRC_FINITE;
 
 	// Real-time operation output flags
 	int32	isSampleLate	= 0;
@@ -235,9 +250,10 @@ typedef struct _NIdefaults {
 	// I/O operation properties
 	float64 IOtimeout		= 10.0;
 	bool32	DigiAutoStart	= TRUE;
-	bool32	AnalogAutoStart = FALSE;
+	bool32	AnalogAutoStart = (NIsamplingMode==DAQmx_Val_HWTimedSinglePoint)? FALSE: TRUE; //SCR FALSE for HW-timed
 	bool32	dataLayout		= DAQmx_Val_GroupByChannel;
 		// Don't use this layout for analog input
+	bool32	AIdataLayout	= DAQmx_Val_GroupByScanNumber;
 	
 	// Miscellaneous stuff that I've lost track of - probably not used. Consider removal.
 	int32	plsIdleState	= DAQmx_Val_Low;
@@ -262,7 +278,8 @@ extern deviceInfo				*DAQmxDevList;
 extern unsigned int				DAQmxDevCount;
 extern unsigned int				DAQmxMaxCount;
 extern int32					DAQmxTriggerEdge;
-extern samplingModes			DAQmxSampleMode; 
+extern samplingModes			DAQmxSampleMode;
+extern char						DAQmxSampleModeString[20];
 extern float64					DAQmxSamplingRate;
 extern uInt64					DAQmxNumDataPointsPerSample;
 extern char						DAQmxClockSource[DAQMX_MAX_STR_LEN];
@@ -294,6 +311,13 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
 // library run functions
 void quickDAQstart();
 void quickDAQstop();
+
+// read/write functions
+void readAnalog(unsigned devNum, float64 *outputData);
+void writeAnalog(unsigned devNum, float64 *inputData);
+void writeDigital(unsigned devNum, uInt32 *inputData);
+void readCounterAngle(unsigned devNum, unsigned pinNum, float64 *outputData);
+void syncSampling(unsigned devNum, IOmodes ioMode, unsigned pinNum);
 
 // shutdown routines
 int quickDAQTerminate();

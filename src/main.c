@@ -2,17 +2,20 @@
 //
 
 #include <stdio.h>
+#include <Windows.h>
 #include <quickDAQ.h>
 
 //using namespace std;
 int main()
 {
+/*
 	unsigned input;
 	printf_s("Hello World! Enter a number (0-9): ");
 	input = getchar() - '0';
 	printf_s("\nThe number you input was %d", input);
 	printf_s("\nPress a key to continue...\n");
 	getchar();
+*/
 
 	// initialize
 	quickDAQinit();
@@ -23,15 +26,35 @@ int main()
 	pinMode(2, DIGITAL_OUT, 0);
 	pinMode(3, CTR_ANGLE_IN, 0);
 
-	setSampleClockTiming(DAQmxSampleMode, DAQmxSamplingRate, DAQmxClockSource, (triggerModes) DAQmxTriggerEdge, DAQmxNumDataPointsPerSample, TRUE);
+	setSampleClockTiming((samplingModes) HW_CLOCKED/*DAQmxSampleMode*/, DAQmxSamplingRate, DAQmxClockSource, (triggerModes) DAQmxTriggerEdge, DAQmxNumDataPointsPerSample, TRUE);
 
 	// start tasks
 	quickDAQstart();
 
 	// read/write data
-	//float
+	float64 AI;
+	float64 AO = 1;
+	uInt32 DO = 0xffffffff;
+	float64 CI = -3;
 
-	//wait for HW timed sample
+	printf("\nIO timeout is %f\n", DAQmxDefaults.IOtimeout);
+	printf("\nData written: AO: %lf, DO: %lX\n", (double)AO, DO);
+	//getchar();
+
+		syncSampling(5, ANALOG_IN, 0); //wait for HW timed sample
+
+		readAnalog(5, &AI);
+		//printf("pass AI\n");
+		
+		writeAnalog(2, &AO);
+		//printf("pass AO\n");
+		
+		writeDigital(2, &DO);
+		//printf("pass DO\n");
+		
+		readCounterAngle(3, 0, &CI);
+		printf("\nData read: CI: %lf\n", (double)CI);
+	
 
 	// end tasks
 	quickDAQstop();
