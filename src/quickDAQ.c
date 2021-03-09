@@ -29,6 +29,15 @@ char						DAQmxSampleModeString[20];
 float64						DAQmxSamplingRate					= DAQmxDefaults.NIsamplingRate;
 uInt64						DAQmxNumDataPointsPerSample			= DAQmxDefaults.NIsamplesPerCh;
 char						DAQmxClockSource[DAQMX_MAX_STR_LEN] = /*DAQMX_SAMPLE_CLK_SRC_FINITE;*/DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED;//((DAQmxSampleMode == DAQmx_Val_HWTimedSinglePoint) ? DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED : DAQMX_SAMPLE_CLK_SRC_FINITE);
+IOmodes						DAQmxClockSourceTask = INVALID_IO;
+int							DAQmxClockSourceDev = -1, DAQmxClockSourcePin = -1;
+
+// NI-DAQmx subsystem tasks
+cLinkedList *NItaskList;
+TaskHandle *AItaskHandle = NULL, *AOtaskHandle = NULL, *DItaskHandle = NULL, *DOtaskHandle = NULL;
+cLinkedList *CItaskHandle = NULL, * COtaskHandle = NULL;
+unsigned	AIpinCount = 0, AOpinCount = 0, DIpinCount = 0, DOpinCount = 0, CIpinCount = 0, COpinCount = 0;
+
 
 //-------------------------------
 // quickDAQ Function Definitions
@@ -418,48 +427,67 @@ unsigned int enumerateNIDevTerminals(unsigned int deviceNumber)
 }
 
 
-void setupTaskHandles()
+void initDevTaskFlags()
 {
+	// Create global tasks list
+	//AItaskHandle = (TaskHandle*) malloc(sizeof(TaskHandle));
+	//AOtaskHandle = (TaskHandle*) malloc(sizeof(TaskHandle));
+	//DItaskHandle = (TaskHandle*) malloc(sizeof(TaskHandle));
+	//DOtaskHandle = (TaskHandle*) malloc(sizeof(TaskHandle));
+
+
 	// create task handles for all NI DAQmx tasks within each valid device
 	unsigned int i = 0, j = 0;
 	if (quickDAQStatus != STATUS_NASCENT) {
-		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Library must be reset and enumerated before setting up NI-DAQmx tasks.\n");
+		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Library must be reset and enumerated before initializing NI-DAQmx task flags.\n");
 		return;
 	}
 	if (DAQmxEnumerated != 1) {
-		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Enumerate NI-DAQmx devices before setting up NI-DAQmx tasks.\n");
+		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Enumerate NI-DAQmx devices before initializing NI-DAQmx task flags.\n");
 		return;
 	}
 
 	for (i = 0; i <= DAQmxMaxCount; i++) {
 		if ((DAQmxDevList[i]).isDevValid == TRUE) {
-			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).AItask))); //AI task
+			// AI task
+			//DAQmxDevList[i].AItask = &AItaskHandle;
+			//DAQmxErrChk(DAQmxCreateTask("", (DAQmxDevList[i]).AItask));
 			(DAQmxDevList[i]).AItaskDataLen = 0;
 			(DAQmxDevList[i]).AItaskEnable = FALSE;
-			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).AOtask))); //AO task
+			
+			// AO task
+			//DAQmxDevList[i].AOtask = &AOtaskHandle;
+			//DAQmxErrChk(DAQmxCreateTask("", (DAQmxDevList[i]).AOtask));
 			(DAQmxDevList[i]).AOtaskDataLen = 0;
 			(DAQmxDevList[i]).AOtaskEnable = FALSE;
-			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).DItask))); //DI task
+			
+			// DI task
+			//DAQmxDevList[i].DItask = &DItaskHandle;
+			//DAQmxErrChk(DAQmxCreateTask("", (DAQmxDevList[i]).DItask));
 			(DAQmxDevList[i]).DItaskDataLen = 0;
 			(DAQmxDevList[i]).DItaskEnable = FALSE;
-			DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).DOtask))); //DO task
+			
+			// DO task
+			//DAQmxDevList[i].DOtask = &DOtaskHandle;
+			//DAQmxErrChk(DAQmxCreateTask("", (DAQmxDevList[i]).DOtask));
 			(DAQmxDevList[i]).DOtaskDataLen = 0;
 			(DAQmxDevList[i]).DOtaskEnable = FALSE;
+			
 			// CI tasks
-			(DAQmxDevList[i]).CItask = (TaskHandle*)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(TaskHandle));
+			(DAQmxDevList[i]).CItask = (TaskHandle**)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(TaskHandle*));
 			(DAQmxDevList[i]).CItaskDataLen = (unsigned*)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(unsigned));
 			(DAQmxDevList[i]).CItaskEnable = (bool*)malloc(((DAQmxDevList[i]).CIcnt) * sizeof(bool));
 			for (j = 0; j < (DAQmxDevList[i]).CIcnt; j++) {
-				DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).CItask[j])));
+				//DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).CItask[j])));
 				(DAQmxDevList[i]).CItaskEnable[j] = FALSE;
 			}
 
 			// CO tasks
-			(DAQmxDevList[i]).COtask = (TaskHandle*)malloc(((DAQmxDevList[i]).COcnt) * sizeof(TaskHandle));
+			(DAQmxDevList[i]).COtask = (TaskHandle**)malloc(((DAQmxDevList[i]).COcnt) * sizeof(TaskHandle*));
 			(DAQmxDevList[i]).COtaskDataLen = (unsigned*)malloc(((DAQmxDevList[i]).COcnt) * sizeof(unsigned));
 			(DAQmxDevList[i]).COtaskEnable = (bool*)malloc(((DAQmxDevList[i]).COcnt) * sizeof(bool));
 			for (j = 0; j < (DAQmxDevList[i]).COcnt; j++) {
-				DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).COtask[j])));
+				//DAQmxErrChk(DAQmxCreateTask("", &((DAQmxDevList[i]).COtask[j])));
 				(DAQmxDevList[i]).COtaskEnable[j] = FALSE;
 			}
 		}
@@ -472,10 +500,15 @@ void quickDAQinit()
 {
 	char newPrefix[] = DAQMX_DEF_DEV_PREFIX;
 	quickDAQSetStatus(STATUS_NASCENT, FALSE);
+	
 	DAQmxEnumerated = 0;
 	setDAQmxDevPrefix(newPrefix);
 	enumerateNIDevices();
-	setupTaskHandles();
+	initDevTaskFlags();
+
+	NItaskList = (cLinkedList*)malloc(sizeof(cLinkedList));
+	cListInit(NItaskList);
+	
 	quickDAQSetStatus(STATUS_INIT, TRUE);
 }
 
@@ -502,7 +535,35 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 		DAQmxNumDataPointsPerSample = numDataPointsPerSample;
 
 		quickDAQGetSamplingMode(DAQmxSampleModeString);
-		fprintf(ERRSTREAM, "\nSetting up DAQmx sample clock timing with sample mode %d (%s) at %0.2f Hz:", DAQmxSampleMode, DAQmxSampleModeString, DAQmxSamplingRate);
+		fprintf(ERRSTREAM, "\nSetting up DAQmx sample clock timing with sample mode %d (%s) at %0.2f Hz.\n", DAQmxSampleMode, DAQmxSampleModeString, DAQmxSamplingRate);
+	
+		TaskHandle* myTask = NULL;
+		cListElem* myElem = NULL;
+		unsigned isFirstTask = 1;
+
+		for (myElem = cListFirstElem(NItaskList); myElem != NULL; myElem = cListNextElem(NItaskList, myElem)) {
+			myTask = (TaskHandle*)myElem->obj;
+			if (myTask != DItaskHandle && myTask != DOtaskHandle) {
+				if (isFirstTask == 1) {
+					DAQmxErrChk(DAQmxCfgSampClkTiming(*myTask, "", DAQmxSamplingRate,
+						DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+					fprintf(ERRSTREAM, "First task: ");
+					isFirstTask = 0;
+				}
+				else {
+					DAQmxErrChk(DAQmxCfgSampClkTiming(*myTask, DAQmxClockSource, DAQmxSamplingRate,
+						DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
+				}
+			}
+			if (sampleMode == HW_CLOCKED) 
+				DAQmxSetRealTimeConvLateErrorsToWarnings(*myTask, TRUE);
+			fprintf(ERRSTREAM, "Setting sample clock source\n");
+		}
+
+		if(!cListEmpty(NItaskList))
+			quickDAQSetStatus(STATUS_READY, TRUE);
+
+		/*
 		unsigned int i, j, k, isSet;
 		for (i = 0; i <= DAQmxMaxCount; i++) {
 			deviceInfo* thisDev = &(DAQmxDevList[i]);
@@ -547,9 +608,7 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				for (k = 0, isSet = 0; k < thisDev->DOcnt && isSet == 0; k++) {
 					if (thisDev->DOpins[k].isPinValid == TRUE) {
 						thisDev->DOtaskEnable = TRUE; isSet = 1;
-						/*DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DOtask, DAQmxClockSource, DAQmxSamplingRate,
-														  DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
-														  */
+						//DAQmxErrChk(DAQmxCfgSampClkTiming(thisDev->DOtask, DAQmxClockSource, DAQmxSamplingRate, DAQmxTriggerEdge, DAQmxSampleMode, DAQmxNumDataPointsPerSample));
 						// DIGITAL OUT ONLY SUPPORTS ON-DEMAND DATA COLLECTION.
 						quickDAQSetStatus(STATUS_READY, FALSE);
 						if (printFlag) fprintf(ERRSTREAM, "\n\tDev %d : DO%d | CLK SRC: %s", i, k, "ON DEMAND MODE");
@@ -584,9 +643,69 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 				}
 			}
 		}
+		*/
+		
 		if (printFlag) fprintf(ERRSTREAM, "\n");
 		if (quickDAQStatus == STATUS_READY) quickDAQSetStatus(quickDAQStatus, TRUE);
 	}
+}
+
+bool setClockSource(unsigned devNum, int pinNum, IOmodes ioMode)
+{
+	// setup clock source now
+	char localClock[256];
+	dev2string(localClock, devNum);
+
+	if (ioMode == ANALOG_IN && DAQmxClockSourceTask > ANALOG_IN) {
+		strncat_s(localClock, sizeof(localClock), "/ai/SampleClock", sizeof(localClock) - strlen(localClock) - 1);
+		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
+		DAQmxClockSourceTask = ANALOG_IN;
+		DAQmxClockSourceDev = devNum;
+		return TRUE;
+	}
+	else if (ioMode == ANALOG_OUT && DAQmxClockSourceTask > ANALOG_OUT) {
+		strncat_s(localClock, sizeof(localClock), "/ao/SampleClock", sizeof(localClock) - strlen(localClock) - 1);
+		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
+		DAQmxClockSourceTask = ANALOG_OUT;
+		DAQmxClockSourceDev = devNum;
+		return TRUE;
+	}
+	else if (ioMode == DIGITAL_IN && DAQmxClockSourceTask > DIGITAL_IN) {
+		strncat_s(localClock, sizeof(localClock), "/di/SampleClock", sizeof(localClock) - strlen(localClock) - 1);
+		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
+		DAQmxClockSourceTask = DIGITAL_IN;
+		return TRUE;
+	}
+	else if (ioMode == DIGITAL_OUT && DAQmxClockSourceTask > DIGITAL_OUT) {
+		strncat_s(localClock, sizeof(localClock), "/do/SampleClock", sizeof(localClock) - strlen(localClock) - 1);
+		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
+		DAQmxClockSourceTask = DIGITAL_OUT;
+		DAQmxClockSourceDev = devNum;
+		return TRUE;
+	}
+	else if (ioMode == CTR_ANGLE_IN && DAQmxClockSourceTask > CTR_ANGLE_IN) {
+		strncat_s(localClock, sizeof(localClock), "OnboardClock", sizeof(localClock) - strlen(localClock) - 1);
+		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
+		DAQmxClockSourceTask = CTR_ANGLE_IN;
+		DAQmxClockSourceDev = devNum;
+		return TRUE;
+	}
+	else if (ioMode == CTR_TICK_OUT && DAQmxClockSourceTask > CTR_TICK_OUT) {
+		strncat_s(localClock, sizeof(localClock), "OnboardClock", sizeof(localClock) - strlen(localClock) - 1);
+		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
+		DAQmxClockSourceTask = CTR_TICK_OUT;
+		DAQmxClockSourceDev = devNum;
+		return TRUE;
+	}
+	/*
+	else {
+		sprintf_s(DAQmxClockSource, sizeof(DAQmxClockSource), "OnboardClock");
+		//DAQmxClockSourceTask = INVALID_IO;
+		//DAQmxClockSourceDev = devNum;
+	}
+	*/
+
+	return FALSE;
 }
 
 void pinModeErrHandler(unsigned int devNum, IOmodes ioMode, unsigned int pinNum) {
@@ -603,6 +722,7 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 		char pinName[DAQMX_MAX_STR_LEN];
 		pin2string(pinName, devNum, ioMode, pinNum);
 		deviceInfo* thisDev = &(DAQmxDevList[devNum]);
+		TaskHandle* sourceTask = NULL;
 		unsigned pinID = pinNum;
 
 		if (thisDev->isDevValid != 0) {
@@ -613,8 +733,17 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 					thisDev->AIpins[pinID].isPinValid = TRUE;
 					thisDev->AIpins[pinID].pinNum = pinNum;
 					thisDev->AIpins[pinID].pinIOMode = ioMode;
-					thisDev->AIpins[pinID].pinTask = &(thisDev->AItask);
-					DAQmxErrChk(DAQmxCreateAIVoltageChan(thisDev->AItask    , pinName            , ""                          , DAQmxDefaults.NIterminalConf,
+					if (AIpinCount == 0) {
+						AItaskHandle = (TaskHandle*)malloc(sizeof(TaskHandle));
+						DAQmxErrChk(DAQmxCreateTask("", AItaskHandle));
+						thisDev->AItaskEnable = TRUE;
+						thisDev->AItask = AItaskHandle;
+						sourceTask = AItaskHandle;
+						//cListAppend(NItaskList, (void*)sourceTask);
+					}
+					AIpinCount++;
+					thisDev->AIpins[pinID].pinTask = thisDev->AItask;
+					DAQmxErrChk(DAQmxCreateAIVoltageChan(*(thisDev->AItask), pinName            , ""                          , DAQmxDefaults.NIterminalConf,
 														 DAQmxDefaults.AImin, DAQmxDefaults.AImax, DAQmxDefaults.NImeasureUnits, NULL));
 					thisDev->AItaskDataLen++;
 					fprintf(ERRSTREAM, "Set pin mode: Dev%d/AI%d (CLK SRC: %s)\n", devNum, pinNum, DAQmxClockSource);
@@ -629,8 +758,17 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 					thisDev->AOpins[pinID].isPinValid = TRUE;
 					thisDev->AOpins[pinID].pinNum = pinNum;
 					thisDev->AOpins[pinID].pinIOMode = ioMode;
-					thisDev->AOpins[pinID].pinTask = &(thisDev->AOtask);
-					DAQmxErrChk(DAQmxCreateAOVoltageChan(thisDev->AOtask    , pinName            , ""                          ,
+					if (AOpinCount == 0) {
+						AOtaskHandle = (TaskHandle*)malloc(sizeof(TaskHandle));
+						DAQmxErrChk(DAQmxCreateTask("", AOtaskHandle));
+						thisDev->AOtaskEnable = TRUE;
+						thisDev->AOtask = AOtaskHandle;
+						sourceTask = AOtaskHandle;
+						//cListAppend(NItaskList, (void*)sourceTask);
+					}
+					AOpinCount++;
+					thisDev->AOpins[pinID].pinTask = thisDev->AOtask;
+					DAQmxErrChk(DAQmxCreateAOVoltageChan(*(thisDev->AOtask)    , pinName            , ""                          ,
 														 DAQmxDefaults.AOmin, DAQmxDefaults.AOmax, DAQmxDefaults.NImeasureUnits, NULL));
 					thisDev->AOtaskDataLen++;
 					fprintf(ERRSTREAM, "Set pin mode: Dev%d/AO%d (CLK SRC: %s)\n", devNum, pinNum, DAQmxClockSource);
@@ -649,8 +787,17 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 					thisDev->DOpins[pinID].isPinValid = TRUE;
 					thisDev->DOpins[pinID].pinNum = pinNum;
 					thisDev->DOpins[pinID].pinIOMode = ioMode;
-					thisDev->DOpins[pinID].pinTask = &(thisDev->DOtask);
-					DAQmxErrChk(DAQmxCreateDOChan(thisDev->DOtask, pinName, "", DAQmxDefaults.NIdigiLineGroup));
+					if (DOpinCount == 0) {
+						DOtaskHandle = (TaskHandle*)malloc(sizeof(TaskHandle));
+						DAQmxErrChk(DAQmxCreateTask("", DOtaskHandle));
+						thisDev->DOtaskEnable = TRUE;
+						thisDev->DOtask = DOtaskHandle;
+						sourceTask = DOtaskHandle;
+						//cListAppend(NItaskList, (void*)sourceTask);
+					}
+					DOpinCount++;
+					thisDev->DOpins[pinID].pinTask = thisDev->DOtask;
+					DAQmxErrChk(DAQmxCreateDOChan(*(thisDev->DOtask), pinName, "", DAQmxDefaults.NIdigiLineGroup));
 					thisDev->DOtaskDataLen++;
 					fprintf(ERRSTREAM, "Set pin mode: Dev%d/DO%d (CLK SRC: %s)\n", devNum, pinNum, DAQmxClockSource);
 				} 
@@ -664,8 +811,18 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 					thisDev->CIpins[pinID].isPinValid = TRUE;
 					thisDev->CIpins[pinID].pinNum = pinNum;
 					thisDev->CIpins[pinID].pinIOMode = ioMode;
-					thisDev->CIpins[pinID].pinTask = &(thisDev->CItask[pinID]);
-					DAQmxErrChk(DAQmxCreateCIAngEncoderChan(thisDev->CItask[pinID]  , pinName             , "", DAQmxDefaults.NIctrDecodeMode,
+					if (CIpinCount == 0) {
+						CItaskHandle = (cLinkedList*)malloc(sizeof(cLinkedList));
+						cListInit(CItaskHandle);
+					}
+					sourceTask = (TaskHandle*)malloc(sizeof(TaskHandle));
+					//cListAppend(NItaskList, (void*)sourceTask);
+					DAQmxErrChk(DAQmxCreateTask("", sourceTask));
+					thisDev->CItaskEnable[pinID] = TRUE;
+					thisDev->CItask[pinID] = sourceTask;
+					CIpinCount++;
+					thisDev->CIpins[pinID].pinTask = thisDev->CItask[pinID];
+					DAQmxErrChk(DAQmxCreateCIAngEncoderChan(*(thisDev->CItask[pinID])  , pinName             , "", DAQmxDefaults.NIctrDecodeMode,
 															DAQmxDefaults.ZidxEnable, DAQmxDefaults.ZidxValue , DAQmxDefaults.ZidxPhase,
 															DAQmxDefaults.NIctrUnits, DAQmxDefaults.encoderPPR, DAQmxDefaults.angleInit, ""));
 					thisDev->CItaskDataLen[pinID]++;
@@ -682,8 +839,16 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 
 			default:
 				pinModeErrHandler(devNum, ioMode, pinNum);
+				return;
 				break;
 			}
+
+			if (setClockSource(devNum, pinID, ioMode) == TRUE) {
+				cListPrepend(NItaskList, sourceTask);
+			}
+			else
+				cListAppend(NItaskList, sourceTask);
+
 		}
 	}
 }
@@ -692,7 +857,18 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 void quickDAQstart()
 {
 	if (quickDAQStatus == STATUS_READY) {
-		quickDAQSetStatus(STATUS_RUNNING, TRUE);
+		//quickDAQSetStatus(STATUS_RUNNING, TRUE);
+		fprintf(ERRSTREAM, "Starting %d NI-DAQmx tasks...\n", cListLength(NItaskList));
+		fprintf(ERRSTREAM, "\tDetected %d AI pins, %d AO pins, %d DI pins, %d DO pins, %d CI pins, %d CO pins.\n",
+			AIpinCount, AOpinCount, DIpinCount, DOpinCount, CIpinCount, COpinCount);
+		
+		cListElem* myElem = NULL;
+		for (myElem = cListFirstElem(NItaskList); myElem != NULL; myElem = cListNextElem(NItaskList, myElem)) {
+			DAQmxErrChk(DAQmxStartTask( *((TaskHandle*)myElem->obj) ));
+			fprintf(ERRSTREAM, "Started a DAQmx task\n");
+		}
+
+		/*
 		unsigned i = 0, j = 0;
 		for (i = 0; i < DAQmxMaxCount; i++) {
 			if (DAQmxDevList[i].isDevValid == TRUE) {
@@ -713,13 +889,23 @@ void quickDAQstart()
 				}
 			}
 		}
+		*/
+	
+		quickDAQSetStatus(STATUS_RUNNING, TRUE);
 	}
 }
 
 void quickDAQstop()
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
+		
+		cListElem* myElem = NULL;
+		for (myElem = cListFirstElem(NItaskList); myElem != NULL; myElem = cListNextElem(NItaskList, myElem)) {
+			DAQmxErrChk(DAQmxStopTask( *((TaskHandle*)myElem->obj) ));
+		}
 		quickDAQSetStatus(STATUS_READY, TRUE);
+		
+		/*
 		unsigned i = 0, j = 0;
 		for (i = 0; i < DAQmxMaxCount; i++) {
 			deviceInfo* thisDev = &(DAQmxDevList[i]);
@@ -733,7 +919,8 @@ void quickDAQstop()
 			for (j = 0; j < thisDev->COcnt; j++) {
 				if (thisDev->COtaskEnable[j] == TRUE) DAQmxErrChk(DAQmxStopTask(thisDev->COtask[j]));
 			}
-		}	
+		}
+		*/
 	}
 }
 
@@ -777,6 +964,8 @@ void readCounterAngle(unsigned devNum, unsigned pinNum, float64 *outputData)
 void syncSampling(unsigned devNum, IOmodes ioMode, unsigned pinNum)
 {
 	if (DAQmxSampleMode == DAQmx_Val_HWTimedSinglePoint) {
+		DAQmxErrChk(DAQmxWaitForNextSampleClock(*((TaskHandle*)cListFirstData(NItaskList)), DAQmxDefaults.IOtimeout, FALSE));
+		/*
 		switch (ioMode)
 		{
 		case ANALOG_IN:
@@ -800,6 +989,7 @@ void syncSampling(unsigned devNum, IOmodes ioMode, unsigned pinNum)
 		default:
 			break;
 		}
+		*/
 	}
 }
 
@@ -807,6 +997,13 @@ void syncSampling(unsigned devNum, IOmodes ioMode, unsigned pinNum)
 int quickDAQTerminate()
 {
 	// force shutdown all NI DAQmx tasks for all devices
+	cListElem* myElem = NULL;
+	for (myElem = cListFirstElem(NItaskList); myElem != NULL; myElem = cListNextElem(NItaskList, myElem)) {
+		DAQmxStopTask ( *((TaskHandle*)myElem->obj) );
+		DAQmxClearTask( *((TaskHandle*)myElem->obj) );
+	}
+	
+	/*
 	unsigned int i = 0, j = 0;
 	for (i = 0; i <= DAQmxMaxCount; i++) {
 		if ((DAQmxDevList[i]).isDevValid == TRUE) {
@@ -845,6 +1042,31 @@ int quickDAQTerminate()
 			free((DAQmxDevList[i]).COtaskEnable);
 		}
 	}
+	*/
+
+	//free(AItaskHandle);
+	//free(AOtaskHandle);
+	//free(DItaskHandle);
+	//free(DOtaskHandle);
+
+	TaskHandle* thisTask;
+	cListElem* thisElem;
+	for (thisElem = cListFirstElem(NItaskList); cListEmpty(NItaskList) != TRUE; thisElem = cListFirstElem(NItaskList)) {
+		thisTask = (TaskHandle*)cListFirstData(NItaskList);
+		DAQmxStopTask (*thisTask);
+		DAQmxClearTask(*thisTask);
+		free(thisTask);
+		cListUnlinkElem(NItaskList, thisElem);
+	}
+	free(CItaskHandle);
+	free(COtaskHandle);
+	free(NItaskList);
+	AIpinCount = 0;
+	AOpinCount = 0;
+	DIpinCount = 0;
+	DOpinCount = 0;
+	CIpinCount = 0;
+	COpinCount = 0;
 
 	// Reset library status
 	quickDAQSetStatus(STATUS_NASCENT, TRUE);

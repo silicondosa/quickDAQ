@@ -95,9 +95,9 @@ typedef enum _IOmodes {
 		/*! Pin I/O mode: ANALOG IN*/
 		ANALOG_IN = 0,
 		/*! Pin I/O mode: DIGITAL IN*/
-		DIGITAL_IN = 1,
+		DIGITAL_IN = 2,
 		/*! Pin I/O mode: ANALOG OUT*/
-		ANALOG_OUT = 2,
+		ANALOG_OUT = 1,
 		/*! Pin I/O mode: DIGITAL OUT*/
 		DIGITAL_OUT = 3,
 
@@ -167,37 +167,37 @@ typedef struct _deviceInfo {
 	// Device I/O counts and their respective 'pinInfo'.
 	unsigned int		AIcnt;
 	pinInfo				AIpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			AItask;
+	TaskHandle			*AItask;
 	unsigned			AItaskDataLen;
 	bool				AItaskEnable;
 	
 	unsigned int		AOcnt;
 	pinInfo				AOpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			AOtask;
+	TaskHandle			*AOtask;
 	unsigned			AOtaskDataLen;
 	bool				AOtaskEnable;
 	
 	unsigned int		DIcnt;
 	pinInfo				DIpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			DItask;
+	TaskHandle			*DItask;
 	unsigned			DItaskDataLen;
 	bool				DItaskEnable;
 	
 	unsigned int		DOcnt;
 	pinInfo				DOpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			DOtask;
+	TaskHandle			*DOtask;
 	unsigned			DOtaskDataLen;
 	bool				DOtaskEnable;
 	
 	unsigned int		CIcnt;
 	pinInfo				CIpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			*CItask;
+	TaskHandle			**CItask;
 	unsigned			*CItaskDataLen;
 	bool				*CItaskEnable;
 	
 	unsigned int		COcnt;
 	pinInfo				COpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			*COtask;
+	TaskHandle			**COtask;
 	unsigned			*COtaskDataLen;
 	bool				*COtaskEnable;
 }deviceInfo;
@@ -283,6 +283,14 @@ extern char						DAQmxSampleModeString[20];
 extern float64					DAQmxSamplingRate;
 extern uInt64					DAQmxNumDataPointsPerSample;
 extern char						DAQmxClockSource[DAQMX_MAX_STR_LEN];
+extern IOmodes					DAQmxClockSourceTask;
+extern int						DAQmxClockSourceDev, DAQmxClockSourcePin;
+
+// NI-DAQmx subsystem tasks
+extern cLinkedList *NItaskList;
+extern TaskHandle *AItaskHandle, *AOtaskHandle, *DItaskHandle, *DOtaskHandle;
+extern cLinkedList *CItaskHandle, * COtaskHandle;
+extern unsigned		AIpinCount   , AOpinCount   , DIpinCount   , DOpinCount   , CIpinCount   , COpinCount;
 
 //--------------------------------
 // quickDAQ Function Declarations
@@ -299,13 +307,14 @@ inline char* setDAQmxDevPrefix(char* newPrefix);
 void enumerateNIDevices();
 unsigned int enumerateNIDevChannels(unsigned int myDev, IOmodes IOtype, unsigned int printFlag);
 unsigned int enumerateNIDevTerminals(unsigned int deviceNumber);
-void setupTaskHandles();
+void initDevTaskFlags();
 void quickDAQinit();
 
 // configuration functions
 inline void setActiveEdgeRising();
 inline void setActiveEdgeFalling();
 void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char* triggerSource, triggerModes triggerEdge, uInt64 numDataPointsPerSample, bool printFlag);
+bool setClockSource(unsigned devNum, int pinNum, IOmodes ioMode);
 void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
 
 // library run functions
