@@ -536,7 +536,8 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 
 		quickDAQGetSamplingMode(DAQmxSampleModeString);
 		fprintf(ERRSTREAM, "\nSetting up DAQmx sample clock timing with sample mode %d (%s) at %0.2f Hz.\n", DAQmxSampleMode, DAQmxSampleModeString, DAQmxSamplingRate);
-	
+		fprintf(ERRSTREAM, "\tClock source is '%s'.\n", DAQmxClockSource);
+
 		TaskHandle* myTask = NULL;
 		cListElem* myElem = NULL;
 		unsigned isFirstTask = 1;
@@ -653,6 +654,7 @@ void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char *
 bool setClockSource(unsigned devNum, int pinNum, IOmodes ioMode)
 {
 	// setup clock source now
+	bool isNewClockSet = FALSE;
 	char localClock[256];
 	dev2string(localClock, devNum);
 
@@ -661,41 +663,41 @@ bool setClockSource(unsigned devNum, int pinNum, IOmodes ioMode)
 		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
 		DAQmxClockSourceTask = ANALOG_IN;
 		DAQmxClockSourceDev = devNum;
-		return TRUE;
+		isNewClockSet = TRUE;
 	}
 	else if (ioMode == ANALOG_OUT && DAQmxClockSourceTask > ANALOG_OUT) {
 		strncat_s(localClock, sizeof(localClock), "/ao/SampleClock", sizeof(localClock) - strlen(localClock) - 1);
 		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
 		DAQmxClockSourceTask = ANALOG_OUT;
 		DAQmxClockSourceDev = devNum;
-		return TRUE;
+		isNewClockSet = TRUE;
 	}
 	else if (ioMode == DIGITAL_IN && DAQmxClockSourceTask > DIGITAL_IN) {
 		strncat_s(localClock, sizeof(localClock), "/di/SampleClock", sizeof(localClock) - strlen(localClock) - 1);
 		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
 		DAQmxClockSourceTask = DIGITAL_IN;
-		return TRUE;
+		isNewClockSet = TRUE;
 	}
 	else if (ioMode == DIGITAL_OUT && DAQmxClockSourceTask > DIGITAL_OUT) {
 		strncat_s(localClock, sizeof(localClock), "/do/SampleClock", sizeof(localClock) - strlen(localClock) - 1);
 		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
 		DAQmxClockSourceTask = DIGITAL_OUT;
 		DAQmxClockSourceDev = devNum;
-		return TRUE;
+		isNewClockSet = TRUE;
 	}
 	else if (ioMode == CTR_ANGLE_IN && DAQmxClockSourceTask > CTR_ANGLE_IN) {
 		strncat_s(localClock, sizeof(localClock), "OnboardClock", sizeof(localClock) - strlen(localClock) - 1);
 		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
 		DAQmxClockSourceTask = CTR_ANGLE_IN;
 		DAQmxClockSourceDev = devNum;
-		return TRUE;
+		isNewClockSet = TRUE;
 	}
 	else if (ioMode == CTR_TICK_OUT && DAQmxClockSourceTask > CTR_TICK_OUT) {
 		strncat_s(localClock, sizeof(localClock), "OnboardClock", sizeof(localClock) - strlen(localClock) - 1);
 		strncpy_s(DAQmxClockSource, sizeof(DAQmxClockSource), localClock, sizeof(localClock));
 		DAQmxClockSourceTask = CTR_TICK_OUT;
 		DAQmxClockSourceDev = devNum;
-		return TRUE;
+		isNewClockSet = TRUE;
 	}
 	/*
 	else {
@@ -704,7 +706,10 @@ bool setClockSource(unsigned devNum, int pinNum, IOmodes ioMode)
 		//DAQmxClockSourceDev = devNum;
 	}
 	*/
-
+	if (isNewClockSet) {
+		fprintf(ERRSTREAM, "Clock source set to %s\n", localClock);
+		return TRUE;
+	}
 	return FALSE;
 }
 
