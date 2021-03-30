@@ -28,29 +28,31 @@ int main()
 
 	setSampleClockTiming((samplingModes) HW_CLOCKED/*DAQmxSampleMode*/, DAQmxSamplingRate, DAQmxClockSource, (triggerModes) DAQmxTriggerEdge, DAQmxNumDataPointsPerSample, TRUE);
 
-	// start tasks
-	quickDAQstart();
+	printf("\nIO timeout is %f\n", DAQmxDefaults.IOtimeout);
 
 	// read/write data
 	float64 AI;
 	float64 AO = 1;
-	uInt32 DO = 0xffffffff;
+	//uInt32 DO = 0xffffffff;
+	uInt32 DO = 0x00000000;
 	float64 CI = -3;
 
-	printf("\nIO timeout is %f\n", DAQmxDefaults.IOtimeout);
-	printf("\nData written: AO: %lf, DO: %lX\n", (double)AO, DO);
-	//getchar();
+	printf("\nData to be written: AO: %lf, DO: %lX\n", (double)AO, DO);
 
-		syncSampling(5, ANALOG_IN, 0); //wait for HW timed sample
+	// start tasks
+	quickDAQstart();
+
+
+		syncSampling(); //wait for HW timed sample
 
 		readAnalog(5, &AI);
-		//printf("pass AI\n");
+		printf("pass AI\n");
 		
 		writeAnalog(2, &AO);
-		//printf("pass AO\n");
+		printf("pass AO\n");
 		
 		writeDigital(2, &DO);
-		//printf("pass DO\n");
+		printf("pass DO\n");
 		
 		readCounterAngle(3, 0, &CI);
 		printf("\nData read: CI: %lf\n", (double)CI);

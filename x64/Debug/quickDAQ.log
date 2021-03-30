@@ -1,8 +1,1 @@
-﻿  main.c
-  quickDAQ.c
-  Generating Code...
-C:\Users\tyros\codebase\quickDAQ\src\quickDAQ.c(74,6): warning C4101:  'devicesernum_buffersize': unreferenced local variable
-quickDAQ.obj : error LNK2019: unresolved external symbol DAQmxGetDeviceAttribute referenced in function "void __cdecl enumerateNIDevices(void)" (?enumerateNIDevices@@YAXXZ)
-quickDAQ.obj : error LNK2019: unresolved external symbol DAQmxGetSystemInfoAttribute referenced in function "void __cdecl enumerateNIDevices(void)" (?enumerateNIDevices@@YAXXZ)
-lib\NI-DAQmx\NIDAQmx.lib : warning LNK4272: library machine type 'x86' conflicts with target machine type 'x64'
-C:\Users\tyros\codebase\quickDAQ\x64\Debug\quickDAQ.exe : fatal error LNK1120: 2 unresolved externals
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.Cpp.Platform.targets(57,5): error MSB8020: The build tools for v142 (Platform Toolset = 'v142') cannot be found. To build using the v142 build tools, please install v142 build tools.  Alternatively, you may upgrade to the current Visual Studio tools by selecting the Project menu or right-click the solution, and then selecting "Retarget solution".

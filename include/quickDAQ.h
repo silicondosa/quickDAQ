@@ -142,6 +142,16 @@ typedef enum _trigger_modes {
 }triggerModes;
 
 /*!
+* Defines the details of each NI-DAQmx task
+*/
+typedef struct _NItask {
+	TaskHandle	taskHandler;
+	IOmodes		taskType;
+	unsigned	pinCount;
+	void* dataBuffer;
+} NItask;
+
+/*!
 * Defines details on a device pin/channel.
 */
 typedef struct _pinInfo {
@@ -149,7 +159,7 @@ typedef struct _pinInfo {
 	unsigned int		pinNum;
 	IOmodes				pinIOMode;
 	//IO_Direction		pinDir;
-	TaskHandle			*pinTask;
+	NItask				*pinTask;
 }pinInfo;
 
 /*!
@@ -167,39 +177,39 @@ typedef struct _deviceInfo {
 	// Device I/O counts and their respective 'pinInfo'.
 	unsigned int		AIcnt;
 	pinInfo				AIpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			*AItask;
-	unsigned			AItaskDataLen;
-	bool				AItaskEnable;
+	NItask				*AItask;
+	//unsigned			AItaskDataLen;
+	//bool				AItaskEnable;
 	
 	unsigned int		AOcnt;
 	pinInfo				AOpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			*AOtask;
-	unsigned			AOtaskDataLen;
-	bool				AOtaskEnable;
+	NItask				*AOtask;
+	//unsigned			AOtaskDataLen;
+	//bool				AOtaskEnable;
 	
 	unsigned int		DIcnt;
 	pinInfo				DIpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			*DItask;
-	unsigned			DItaskDataLen;
-	bool				DItaskEnable;
+	NItask				*DItask;
+	//unsigned			DItaskDataLen;
+	//bool				DItaskEnable;
 	
 	unsigned int		DOcnt;
 	pinInfo				DOpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			*DOtask;
-	unsigned			DOtaskDataLen;
-	bool				DOtaskEnable;
+	NItask				*DOtask;
+	//unsigned			DOtaskDataLen;
+	//bool				DOtaskEnable;
 	
 	unsigned int		CIcnt;
 	pinInfo				CIpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			**CItask;
-	unsigned			*CItaskDataLen;
-	bool				*CItaskEnable;
+	NItask				**CItask;
+	//unsigned			*CItaskDataLen;
+	//bool				*CItaskEnable;
 	
 	unsigned int		COcnt;
 	pinInfo				COpins[DAQMX_MAX_PIN_CNT];
-	TaskHandle			**COtask;
-	unsigned			*COtaskDataLen;
-	bool				*COtaskEnable;
+	NItask				**COtask;
+	//unsigned			*COtaskDataLen;
+	//bool				*COtaskEnable;
 }deviceInfo;
 
 /*!
@@ -268,6 +278,7 @@ typedef struct _NIdefaults {
 extern quickDAQErrorCodes		quickDAQErrorCode;
 extern int32					NIDAQmxErrorCode;
 extern quickDAQStatusModes		quickDAQStatus;
+extern bool32					lateSampleWarning;
 
 // NI-DAQmx specific declarations
 extern char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN];
@@ -287,10 +298,15 @@ extern IOmodes					DAQmxClockSourceTask;
 extern int						DAQmxClockSourceDev, DAQmxClockSourcePin;
 
 // NI-DAQmx subsystem tasks
-extern cLinkedList *NItaskList;
-extern TaskHandle *AItaskHandle, *AOtaskHandle, *DItaskHandle, *DOtaskHandle;
-extern cLinkedList *CItaskHandle, * COtaskHandle;
-extern unsigned		AIpinCount   , AOpinCount   , DIpinCount   , DOpinCount   , CIpinCount   , COpinCount;
+
+extern cLinkedList	*NItaskList;
+//extern TaskHandle	*AItaskHandle, *AOtaskHandle, *DItaskHandle, *DOtaskHandle;
+//extern unsigned		 AIpinCount, AOpinCount, DIpinCount, DOpinCount;
+extern NItask		*AItask	   , *AOtask   , *DItask   , *DOtask;
+
+extern cLinkedList	*CItaskList, *COtaskList;
+//extern unsigned		 CIpinCount, COpinCount;
+
 
 //--------------------------------
 // quickDAQ Function Declarations
@@ -326,7 +342,7 @@ void readAnalog(unsigned devNum, float64 *outputData);
 void writeAnalog(unsigned devNum, float64 *inputData);
 void writeDigital(unsigned devNum, uInt32 *inputData);
 void readCounterAngle(unsigned devNum, unsigned pinNum, float64 *outputData);
-void syncSampling(unsigned devNum, IOmodes ioMode, unsigned pinNum);
+void syncSampling();
 
 // shutdown routines
 int quickDAQTerminate();
