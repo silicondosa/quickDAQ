@@ -986,22 +986,22 @@ void quickDAQstop()
 			switch (myTask->taskType)
 			{
 			case ANALOG_IN:
-				fprintf(ERRSTREAM, "Stopped DAQmx 'ANALOG IN' task with %d active pins\n", myTask->pinCount);
+				fprintf(ERRSTREAM, "Stopped DAQmx 'ANALOG IN' task with %d active pin(s)\n", myTask->pinCount);
 				break;
 			case ANALOG_OUT:
-				fprintf(ERRSTREAM, "Stopped DAQmx 'ANALOG OUT' task with %d active pins\n", myTask->pinCount);
+				fprintf(ERRSTREAM, "Stopped DAQmx 'ANALOG OUT' task with %d active pin(s)\n", myTask->pinCount);
 				break;
 			case DIGITAL_IN:
-				fprintf(ERRSTREAM, "Starting DAQmx 'DIGITAL IN' task with %d active ports\n", myTask->pinCount);
+				fprintf(ERRSTREAM, "Starting DAQmx 'DIGITAL IN' task with %d active port(s)\n", myTask->pinCount);
 				break;
 			case DIGITAL_OUT:
-				fprintf(ERRSTREAM, "Stopped DAQmx 'DIGITAL OUT' task with %d active ports\n", myTask->pinCount);
+				fprintf(ERRSTREAM, "Stopped DAQmx 'DIGITAL OUT' task with %d active port(s)\n", myTask->pinCount);
 				break;
 			case CTR_ANGLE_IN:
-				fprintf(ERRSTREAM, "Stopped DAQmx 'COUNTER ANGLE IN' task with %d active counters\n", myTask->pinCount);
+				fprintf(ERRSTREAM, "Stopped DAQmx 'COUNTER ANGLE IN' task with %d active counter(s)\n", myTask->pinCount);
 				break;
 			case CTR_TICK_OUT:
-				fprintf(ERRSTREAM, "Stopped DAQmx 'COUNTER TICK OUT' task with %d active counters\n", myTask->pinCount);
+				fprintf(ERRSTREAM, "Stopped DAQmx 'COUNTER TICK OUT' task with %d active counter(s)\n", myTask->pinCount);
 				break;
 			default:
 				fprintf(ERRSTREAM, "quickDAQ: FATAL: Attempted to stop a task of unknown I/O type.\n");
