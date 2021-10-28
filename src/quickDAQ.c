@@ -8,6 +8,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
 //------------------------------
 // EasyDAQmx Glabal Definitions
 //------------------------------
@@ -1209,3 +1213,8 @@ int quickDAQTerminate()
 	DAQmxDevList = NULL;
 	return 0;
 }
+
+#ifdef __cplusplus 
+}
+#endif 
+

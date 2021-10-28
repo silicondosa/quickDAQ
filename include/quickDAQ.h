@@ -3,6 +3,10 @@
 #ifndef QUICKDAQ_H
 #define QUICKDAQ_H
 
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
 #include <ansi_c.h>
 #include <cLinkedList.h>
 #include <NIDAQmx.h>
@@ -346,6 +350,10 @@ void syncSampling();
 
 // shutdown routines
 int quickDAQTerminate();
+
+#ifdef __cplusplus 
+}
+#endif 
 
 #endif // !QUICKDAQ_H
 
