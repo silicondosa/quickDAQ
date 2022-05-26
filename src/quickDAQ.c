@@ -7,38 +7,95 @@
 #include <macrodef.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus 
 extern "C" {
 #endif
 
 //------------------------------
-// EasyDAQmx Glabal Definitions
+// QuickDAQmx Glabal Definitions
 //------------------------------
-quickDAQErrorCodes			quickDAQErrorCode;
-int32						NIDAQmxErrorCode;
-quickDAQStatusModes			quickDAQStatus;
-bool32						lateSampleWarning;
+quickDAQErrorCodes			quickDAQErrorCode	= 0;
+int32						NIDAQmxErrorCode	= 0;
+quickDAQStatusModes			quickDAQStatus		= STATUS_NASCENT;
+bool32						lateSampleWarning	= 0;
 
 // NI-DAQmx specific declarations
 char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN] = DAQMX_DEF_DEV_PREFIX;
 unsigned int				DAQmxEnumerated = 0;
-//long						DAQmxErrorCode = 0;
-NIdefaults					DAQmxDefaults;
+long						DAQmxErrorCode = 0;
+
+const NIdefaults			DAQmxDefaults = {
+// Device prefix
+	.devPrefix			= DAQMX_DEF_DEV_PREFIX,
+
+// Analog I/O settings
+	.NImeasureUnits		= DAQmx_Val_Volts,
+	.NIterminalConf		= DAQmx_Val_RSE,
+
+// Analog input settings
+	.AImin				= -10,
+	.AImax				= 10,
+
+// Analog output settings
+	.AOmin				= -10,
+	.AOmax				= 10,
+
+// Digital I/O settings
+	.NIdigiLineGroup	= DAQmx_Val_ChanForAllLines,
+
+// Counter I/O settings
+	.NIctrDecodeMode	= DAQmx_Val_X4,
+	.ZidxEnable			= 0,
+	.ZidxValue			= 0.0,
+	.ZidxPhase			= DAQmx_Val_AHighBHigh,
+	.NIctrUnits			= DAQmx_Val_Degrees,
+	.angleInit			= 0.0,
+
+// Sampling/Timing properties
+	.NItriggerEdge		= DAQmx_Val_Rising,
+	.NIsamplingRate		= 1000.0,
+	.NIsamplesPerCh		= 1,
+// Don't use this setting for analog in. Instead, use -1 (auto)
+	.NIAIsampsPerCh		= -1,
+	.NIsamplingMode		= DAQmx_Val_HWTimedSinglePoint, //DAQmx_Val_FiniteSamps; 
+	.NIclockSource		= /*DAQMX_SAMPLE_CLK_SRC_FINITE;*/ DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED,// (DAQmxSampleMode == DAQmx_Val_HWTimedSinglePoint) ? DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED : DAQMX_SAMPLE_CLK_SRC_FINITE;
+
+// Real-time operation output flags
+	.isSampleLate		= 0,
+
+// Encoder properties
+	.encoderPPR			= 2048, // For CUI AMT103 encoder
+
+// I/O operation properties
+	.IOtimeout			= 10.0,
+	.DigiAutoStart		= TRUE,
+	.AnalogAutoStart	= FALSE, // (NIsamplingMode == DAQmx_Val_HWTimedSinglePoint) ? FALSE : TRUE, //SCR FALSE for HW-timed
+	.dataLayout			= DAQmx_Val_GroupByChannel, // Don't use this layout for analog input
+	.AIdataLayout		= DAQmx_Val_GroupByScanNumber,
+	
+// Miscellaneous stuff that I've lost track of - probably not used. Consider removal.
+	.plsIdleState		= DAQmx_Val_Low,
+	.plsInitDel			= 0,
+	.plsLoTick			= 1,
+	.plsHiTick			= 1
+};
+
 deviceInfo					*DAQmxDevList = NULL;
 unsigned int				DAQmxDevCount = 0;
 unsigned int				DAQmxMaxCount = 0;
-int32						DAQmxTriggerEdge					= DAQmxDefaults.NItriggerEdge;
-samplingModes				DAQmxSampleMode						= (samplingModes) DAQmxDefaults.NIsamplingMode;
-char						DAQmxSampleModeString[20];
-float64						DAQmxSamplingRate					= DAQmxDefaults.NIsamplingRate;
-uInt64						DAQmxNumDataPointsPerSample			= DAQmxDefaults.NIsamplesPerCh;
+int32						DAQmxTriggerEdge					= DAQmx_Val_Rising; // DAQmxDefaults.NItriggerEdge;
+samplingModes				DAQmxSampleMode						= (samplingModes) DAQmx_Val_HWTimedSinglePoint;// DAQmxDefaults.NIsamplingMode;
+char						DAQmxSampleModeString[20]			= "";
+float64						DAQmxSamplingRate					= 1000.0;// DAQmxDefaults.NIsamplingRate;
+uInt64						DAQmxNumDataPointsPerSample			= 1;// DAQmxDefaults.NIsamplesPerCh;
 char						DAQmxClockSource[DAQMX_MAX_STR_LEN] = /*DAQMX_SAMPLE_CLK_SRC_FINITE;*/DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED;//((DAQmxSampleMode == DAQmx_Val_HWTimedSinglePoint) ? DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED : DAQMX_SAMPLE_CLK_SRC_FINITE);
 IOmodes						DAQmxClockSourceTask = INVALID_IO;
 int							DAQmxClockSourceDev = -1, DAQmxClockSourcePin = -1;
 
 // NI-DAQmx subsystem tasks
-cLinkedList *NItaskList;
+cLinkedList *NItaskList = NULL;
 // TaskHandle *AItaskHandle = NULL, *AOtaskHandle = NULL, *DItaskHandle = NULL, *DOtaskHandle = NULL;
 cLinkedList *CItaskList = NULL, * COtaskList = NULL;
 // unsigned	AIpinCount = 0, AOpinCount = 0, DIpinCount = 0, DOpinCount = 0, CIpinCount = 0, COpinCount = 0;
@@ -350,8 +407,7 @@ void enumerateNIDevices()
  */
 unsigned int enumerateNIDevChannels(unsigned int myDev, IOmodes IOtype, unsigned int printFlag)
 {
-	const unsigned bufSize = 15000;
-	char data[bufSize];
+	char data[DAQmxBufSize];
 	char DevIDstring[DAQMX_MAX_DEV_STR_LEN];
 	char* rem_data, * oneCh_data;
 
@@ -360,22 +416,22 @@ unsigned int enumerateNIDevChannels(unsigned int myDev, IOmodes IOtype, unsigned
 	switch (IOtype)
 	{
 	case ANALOG_IN:
-		DAQmxGetDevAIPhysicalChans(DevIDstring, data, bufSize);
+		DAQmxGetDevAIPhysicalChans(DevIDstring, data, DAQmxBufSize);
 		break;
 	case ANALOG_OUT:
-		DAQmxGetDevAOPhysicalChans(DevIDstring, data, bufSize);
+		DAQmxGetDevAOPhysicalChans(DevIDstring, data, DAQmxBufSize);
 		break;
 	case DIGITAL_IN:
-		DAQmxGetDevDIPorts(DevIDstring, data, bufSize);
+		DAQmxGetDevDIPorts(DevIDstring, data, DAQmxBufSize);
 		break;
 	case DIGITAL_OUT:
-		DAQmxGetDevDOPorts(DevIDstring, data, bufSize);
+		DAQmxGetDevDOPorts(DevIDstring, data, DAQmxBufSize);
 		break;
 	case CTR_ANGLE_IN:
-		DAQmxGetDevCIPhysicalChans(DevIDstring, data, bufSize);
+		DAQmxGetDevCIPhysicalChans(DevIDstring, data, DAQmxBufSize);
 		break;
 	case CTR_TICK_OUT:
-		DAQmxGetDevCOPhysicalChans(DevIDstring, data, bufSize);
+		DAQmxGetDevCOPhysicalChans(DevIDstring, data, DAQmxBufSize);
 		break;
 	default:
 		quickDAQSetError(ERROR_INVIO, 1);
@@ -408,14 +464,13 @@ unsigned int enumerateNIDevChannels(unsigned int myDev, IOmodes IOtype, unsigned
 unsigned int enumerateNIDevTerminals(unsigned int deviceNumber)
 {
 	char myDev[1 + DAQMX_MAX_DEV_STR_LEN];
-	const unsigned bufSize = 15000;
-	char data[bufSize];
+	char data[DAQmxBufSize];
 	char* rem_data;
 	char* oneCh_data;
 
 	dev2string(myDev, deviceNumber);
-	NIDAQmxErrorCode = DAQmxGetDevTerminals(myDev, data, bufSize);
-	int charLength = (int)strnlen_s(data, bufSize);
+	NIDAQmxErrorCode = DAQmxGetDevTerminals(myDev, data, DAQmxBufSize);
+	int charLength = (int)strnlen_s(data, DAQmxBufSize);
 	rem_data = data;
 	unsigned int i = 0;
 

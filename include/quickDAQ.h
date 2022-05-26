@@ -14,11 +14,13 @@ extern "C" {
 #include <msunistd.h>
 #include <stdafx.h>
 #include <targetver.h>
+#include <stdbool.h>
 
 //-----------------------------
 // quickDAQ Macro Declarations
 //-----------------------------
 
+#define DAQmxBufSize						15000
 // Macros defined to handle any errors that may be thrown
 #define quickDAQErrChk(functionCall) if( functionCall < 0) goto quickDAQErr; else
 #define NIDAQmxErrChk(functionCall) if( DAQmxFailed(error=(functionCall)) ) goto Error; else
@@ -219,62 +221,62 @@ typedef struct _deviceInfo {
 /*!
  * Some default values for NI-DAQmx.
  */
-typedef struct _NIdefaults {
+typedef struct _NIdefault_values {
 	// Device prefix
-	char devPrefix[DAQMX_MAX_DEV_STR_LEN] = DAQMX_DEF_DEV_PREFIX;
+	char devPrefix[DAQMX_MAX_DEV_STR_LEN];
 
 	// Analog I/O settings
-	int32	NImeasureUnits	= DAQmx_Val_Volts;
-	int32	NIterminalConf	= DAQmx_Val_RSE;
+	int32	NImeasureUnits;
+	int32	NIterminalConf;
 	
 	// Analog input settings
-	float64 AImin			= -10;
-	float64 AImax			= 10;
+	float64 AImin;
+	float64 AImax;
 
 	// Analog output settings
-	float64 AOmin			= -10;
-	float64 AOmax			= 10;
+	float64 AOmin;
+	float64 AOmax;
 
 	// Digital I/O settings
-	int32	NIdigiLineGroup = DAQmx_Val_ChanForAllLines;
+	int32	NIdigiLineGroup;
 
 	// Counter I/O settings
-	int32	NIctrDecodeMode = DAQmx_Val_X4;
-	bool32  ZidxEnable		= 0;
-	float64 ZidxValue		= 0.0;
-	int32	ZidxPhase		= DAQmx_Val_AHighBHigh;
-	int32	NIctrUnits		= DAQmx_Val_Degrees;
-	float64 angleInit		= 0.0;
+	int32	NIctrDecodeMode;
+	bool32  ZidxEnable;
+	float64 ZidxValue;
+	int32	ZidxPhase;
+	int32	NIctrUnits;
+	float64 angleInit;
 
 	// Sampling/Timing properties
-	int32	NItriggerEdge  = DAQmx_Val_Rising;
-	float64	NIsamplingRate = 1000.0;
-	int32	NIsamplesPerCh = 1;
+	int32	NItriggerEdge;
+	float64	NIsamplingRate;
+	int32	NIsamplesPerCh;
 		// Don't use this setting for analog in. Instead, use -1 (auto)
-	int32	NIAIsampsPerCh = -1;
-	int32	NIsamplingMode = DAQmx_Val_HWTimedSinglePoint; //DAQmx_Val_FiniteSamps; // SCR
-	char	NIclockSource[DAQMX_MAX_STR_LEN] = /*DAQMX_SAMPLE_CLK_SRC_FINITE;*/ DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED;// (DAQmxSampleMode == DAQmx_Val_HWTimedSinglePoint) ? DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED : DAQMX_SAMPLE_CLK_SRC_FINITE;
+	int32	NIAIsampsPerCh;
+	int32	NIsamplingMode; //DAQmx_Val_HWTimedSinglePoint; //DAQmx_Val_FiniteSamps; // SCR
+	char	NIclockSource[DAQMX_MAX_STR_LEN]; // /*DAQMX_SAMPLE_CLK_SRC_FINITE;*/ DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED;// (DAQmxSampleMode == DAQmx_Val_HWTimedSinglePoint) ? DAQMX_SAMPLE_CLK_SRC_HW_CLOCKED : DAQMX_SAMPLE_CLK_SRC_FINITE;
 
 	// Real-time operation output flags
-	int32	isSampleLate	= 0;
+	int32	isSampleLate;
 	
 	// Encoder properties
-	uInt32	encoderPPR		= 2048; // For CUI AMT103 encoder
+	uInt32	encoderPPR; // For CUI AMT103 encoder
 
 	// I/O operation properties
-	float64 IOtimeout		= 10.0;
-	bool32	DigiAutoStart	= TRUE;
-	bool32	AnalogAutoStart = (NIsamplingMode==DAQmx_Val_HWTimedSinglePoint)? FALSE: TRUE; //SCR FALSE for HW-timed
-	bool32	dataLayout		= DAQmx_Val_GroupByChannel;
+	float64 IOtimeout;
+	bool32	DigiAutoStart;
+	bool32	AnalogAutoStart; // (NIsamplingMode == DAQmx_Val_HWTimedSinglePoint) ? FALSE : TRUE; //SCR FALSE for HW-timed
+	bool32	dataLayout;
 		// Don't use this layout for analog input
-	bool32	AIdataLayout	= DAQmx_Val_GroupByScanNumber;
+	bool32	AIdataLayout;
 	
 	// Miscellaneous stuff that I've lost track of - probably not used. Consider removal.
-	int32	plsIdleState	= DAQmx_Val_Low;
-	int32	plsInitDel		= 0;
-	int32	plsLoTick		= 1;
-	int32	plsHiTick		= 1;
-}NIdefaults;
+	int32	plsIdleState;
+	int32	plsInitDel;
+	int32	plsLoTick;
+	int32	plsHiTick;
+} NIdefaults;
 
 //------------------------------
 // quickDAQ Glabal Declarations
@@ -288,7 +290,7 @@ extern bool32					lateSampleWarning;
 extern char						DAQmxDevPrefix[DAQMX_MAX_DEV_STR_LEN];
 extern unsigned int				DAQmxEnumerated;
 //extern long						DAQmxErrorCode;
-extern NIdefaults				DAQmxDefaults;
+extern const NIdefaults			DAQmxDefaults;
 extern deviceInfo				*DAQmxDevList;
 extern unsigned int				DAQmxDevCount;
 extern unsigned int				DAQmxMaxCount;
