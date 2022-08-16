@@ -99,7 +99,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\lib\NI-DAQmx;..\lib\clinkedlist\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\tyros\codebase\quickDAQ\bin\win32;..\lib\NI-DAQmx;..\lib\clinkedlist\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -136,7 +136,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\lib\NI-DAQmx;..\lib\clinkedlist\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\tyros\codebase\quickDAQ\bin\win32;..\lib\NI-DAQmx;..\lib\clinkedlist\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -173,12 +173,12 @@
     <ClInclude Include="..\lib\NI-DAQmx\include\NIDAQmx.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\bin\win\quickDAQ.lib" />
+    <Library Include="..\bin\win32\quickDAQ.lib" />
     <Library Include="..\lib\clinkedlist\bin\cLinkedList.lib" />
     <Library Include="..\lib\NI-DAQmx\NIDAQmx.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\win\quickDAQ.pdb" />
+    <None Include="..\bin\win32\quickDAQ.pdb" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

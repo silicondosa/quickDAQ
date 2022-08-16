@@ -51,9 +51,9 @@
   <ItemGroup>
     <Library Include="..\lib\NI-DAQmx\NIDAQmx.lib" />
     <Library Include="..\lib\clinkedlist\bin\cLinkedList.lib" />
-    <Library Include="..\bin\win\quickDAQ.lib" />
+    <Library Include="..\bin\win32\quickDAQ.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\win\quickDAQ.pdb" />
+    <None Include="..\bin\win32\quickDAQ.pdb" />
   </ItemGroup>
 </Project>

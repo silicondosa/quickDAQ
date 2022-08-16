@@ -968,7 +968,7 @@ void quickDAQstart()
 		
 		cListElem	*myElem = NULL;
 		NItask		*myTask = NULL;
-		int			ii = 0;
+		unsigned	ii = 0;
 		for (myElem = cListFirstElem(NItaskList); myElem != NULL; myElem = cListNextElem(NItaskList, myElem)) {
 			myTask = (NItask*)myElem->obj;
 			switch (myTask->taskType)
