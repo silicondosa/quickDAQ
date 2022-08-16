@@ -347,6 +347,7 @@ void quickDAQstop();
 void readAnalog(unsigned devNum, float64 *outputData);
 void writeAnalog(unsigned devNum, float64 *inputData);
 void writeDigital(unsigned devNum, uInt32 *inputData);
+void writeDigitalPin (unsigned devNum, unsigned pinNum, bool bitState);
 void readCounterAngle(unsigned devNum, unsigned pinNum, float64 *outputData);
 void syncSampling();
 
