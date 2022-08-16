@@ -8,6 +8,7 @@ int main()
 {
     printf("Hello World!\n");
 	enumerateNIDevices();
+	getchar();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

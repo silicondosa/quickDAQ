@@ -955,6 +955,10 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 // library run function definitions
 void quickDAQstart()
 {
+
+	const float64	zeroAnalog		= 0.000;
+	const uInt32	zeroDigital_32b = 0x00000000;
+
 	if (quickDAQStatus == STATUS_READY) {
 		//quickDAQSetStatus(STATUS_RUNNING, TRUE);
 		fprintf(ERRSTREAM, "Starting %d NI-DAQmx tasks...\n", cListLength(NItaskList));
@@ -964,6 +968,7 @@ void quickDAQstart()
 		
 		cListElem	*myElem = NULL;
 		NItask		*myTask = NULL;
+		int			ii = 0;
 		for (myElem = cListFirstElem(NItaskList); myElem != NULL; myElem = cListNextElem(NItaskList, myElem)) {
 			myTask = (NItask*)myElem->obj;
 			switch (myTask->taskType)
@@ -971,26 +976,44 @@ void quickDAQstart()
 			case ANALOG_IN:
 				fprintf(ERRSTREAM, "Starting DAQmx 'ANALOG IN' task with %d active pins\n", myTask->pinCount);
 				myTask->dataBuffer = (void*)malloc(myTask->pinCount * sizeof(float64));
+				for (ii = 0; ii < myTask->pinCount; ii++) {
+					((float64*)myTask->dataBuffer)[ii] = zeroAnalog;
+				}
 				break;
 			case ANALOG_OUT:
 				fprintf(ERRSTREAM, "Starting DAQmx 'ANALOG OUT' task with %d active pins\n", myTask->pinCount);
 				myTask->dataBuffer = (void*)malloc(myTask->pinCount * sizeof(float64));
+				for (ii = 0; ii < myTask->pinCount; ii++) {
+					((float64*)myTask->dataBuffer)[ii] = zeroAnalog;
+				}
 				break;
 			case DIGITAL_IN:
 				fprintf(ERRSTREAM, "Starting DAQmx 'DIGITAL IN' task with %d active ports\n", myTask->pinCount);
 				myTask->dataBuffer = (void*)malloc(myTask->pinCount * sizeof(uInt32));
+				for (ii = 0; ii < myTask->pinCount; ii++) {
+					((uInt32*)myTask->dataBuffer)[ii] = zeroDigital_32b;
+				}
 				break;
 			case DIGITAL_OUT:
 				fprintf(ERRSTREAM, "Starting DAQmx 'DIGITAL OUT' task with %d active ports\n", myTask->pinCount);
 				myTask->dataBuffer = (void*)malloc(myTask->pinCount * sizeof(uInt32));
+				for (ii = 0; ii < myTask->pinCount; ii++) {
+					((uInt32*)myTask->dataBuffer)[ii] = zeroDigital_32b;
+				}
 				break;
 			case CTR_ANGLE_IN:
 				fprintf(ERRSTREAM, "Starting DAQmx 'COUNTER ANGLE IN' task with %d active counters\n", myTask->pinCount);
 				myTask->dataBuffer = (void*)malloc(myTask->pinCount * sizeof(float64));
+				for (ii = 0; ii < myTask->pinCount; ii++) {
+					((float64*)myTask->dataBuffer)[ii] = zeroAnalog;
+				}
 				break;
 			case CTR_TICK_OUT:
 				fprintf(ERRSTREAM, "Starting DAQmx 'COUNTER TICK OUT' task with %d active counters\n", myTask->pinCount);
 				myTask->dataBuffer = (void*)malloc(myTask->pinCount * sizeof(uInt32));
+				for (ii = 0; ii < myTask->pinCount; ii++) {
+					((uInt32*)myTask->dataBuffer)[ii] = zeroDigital_32b;
+				}
 				break;
 			default:
 				fprintf(ERRSTREAM, "quickDAQ: FATAL: Attempting to start a task of unknown I/O type.\n");
@@ -1121,6 +1144,19 @@ void writeDigital(unsigned devNum, uInt32 *inputData)
 										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (uInt32*)DOtask->dataBuffer, NULL, NULL));
 	}
 
+}
+
+void writeDigitalPin(unsigned devNum, unsigned pinNum, bool bitState)
+{
+	uInt32 myWord;
+	if (quickDAQStatus == STATUS_RUNNING) {
+		memcpy(&myWord, &(((uInt32*)DOtask->dataBuffer)[pinNum]), sizeof(myWord));
+		myWord = (bitState == TRUE) ? ((myWord & (0 << pinNum)) | (0x00000001 << pinNum)) : ((myWord & (0 << pinNum)) | (0x00000000 << pinNum));
+		memcpy(&myWord, &(((uInt32*)DOtask->dataBuffer)[pinNum]), sizeof(uInt32));
+		DAQmxErrChk(DAQmxWriteDigitalU32(DOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.DigiAutoStart,
+										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (uInt32*)DOtask->dataBuffer, NULL, NULL));
+
+	}
 }
 
 void readCounterAngle(unsigned devNum, unsigned pinNum, float64 *outputData)
