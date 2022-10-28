@@ -377,7 +377,7 @@ void writeDigitalPort_intBuf(unsigned devNum);
            default: writeDigitalPort_extBuf	\
           )args
 #define writeDigitalPort(...) writeDigitalPort_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
-void setDigitalPort(unsigned devNum, unsigned portNum, uInt32 portValue);
+void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue);
 
 void writeDigitalPin_extBuf (unsigned devNum, unsigned pinNum, bool bitState);
 void writeDigitalPin_intBuf (unsigned devNum, unsigned pinNum);

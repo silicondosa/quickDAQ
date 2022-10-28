@@ -971,8 +971,11 @@ void readAnalog_extBuf(unsigned devNum, float64 *outputData)
 
 inline float64 getAnalogInPin(unsigned devNum, unsigned pinNum)
 {
-	unsigned pinID = DAQmxDevList[devNum].AIpins[pinNum].pinID;
-	return (quickDAQStatus == STATUS_RUNNING) ? ((float64*)AItask->dataBuffer)[pinID] : NAN;
+	if (quickDAQStatus == STATUS_RUNNING) {
+		unsigned pinID = DAQmxDevList[devNum].AIpins[pinNum].pinID;
+		return ((float64*)AItask->dataBuffer)[pinID];
+	}
+	return NAN;
 }
 
 // functions to write analog pin values
@@ -994,8 +997,8 @@ void writeAnalog_extBuf(unsigned devNum, float64 *inputData)
 
 void setAnalogOutPin(unsigned devNum, unsigned pinNum, float64 pinValue)
 {
-	unsigned pinID = DAQmxDevList[devNum].AOpins[pinNum].pinID;
 	if (quickDAQStatus == STATUS_RUNNING) {
+		unsigned pinID = DAQmxDevList[devNum].AOpins[pinNum].pinID;
 		memcpy(&((float64*)AOtask->dataBuffer)[pinID], &pinValue, sizeof(float64));
 	}
 }
@@ -1019,11 +1022,15 @@ void writeDigitalPort_intBuf(unsigned devNum)
 	}
 }
 
-void setDigitalPort(unsigned devNum, unsigned portNum, uInt32 portValue)
+void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue)
 {
+	if (quickDAQStatus == STATUS_RUNNING) {
+		unsigned pinID = DAQmxDevList[devNum].DOpins[portNum].pinID;
+		memcpy(&((uInt32*)DOtask->dataBuffer)[pinID], &portValue, sizeof(uInt32));
+	}
 }
 
-// functions to read a particular digital pin
+// functions to write a particular digital pin
 void writeDigitalPin_intBuf(unsigned devNum, unsigned pinNum)
 {
 }
@@ -1058,9 +1065,11 @@ void readCounterAngle_extBuf(unsigned devNum, unsigned pinNum, float64 *outputDa
 
 float64 getCounterAngle(unsigned devNum, unsigned ctrNum)
 {
-	float64 retVal;
-
-	return retVal;
+	if (quickDAQStatus == STATUS_RUNNING) {
+		unsigned pinID = DAQmxDevList[devNum].CIpins[ctrNum].pinID;
+		return ((float64*)DAQmxDevList[devNum].CItask[ctrNum]->dataBuffer)[pinID];
+	}
+	return NAN;
 }
 
 void syncSampling()
