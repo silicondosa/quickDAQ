@@ -95,6 +95,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\bin\win\;..\lib\clinkedlist\include;..\lib\NI-DAQmx\include;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <ShowIncludes>true</ShowIncludes>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +131,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\bin\win\;..\lib\clinkedlist\include;..\lib\NI-DAQmx\include;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <ShowIncludes>true</ShowIncludes>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

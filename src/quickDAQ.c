@@ -994,7 +994,7 @@ void writeAnalog_extBuf(unsigned devNum, float64 *inputData)
 
 void setAnalogOutPin(unsigned devNum, unsigned pinNum, float64 pinValue)
 {
-	unsigned pinID = DAQmxDevList[devNum].AIpins[pinNum].pinID;
+	unsigned pinID = DAQmxDevList[devNum].AOpins[pinNum].pinID;
 	if (quickDAQStatus == STATUS_RUNNING) {
 		memcpy(&((float64*)AOtask->dataBuffer)[pinID], &pinValue, sizeof(float64));
 	}
