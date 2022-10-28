@@ -369,14 +369,14 @@ void writeAnalog_intBuf(unsigned devNum);
 #define writeAnalog(...) writeAnalog_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
 void setAnalogOutPin(unsigned devNum, unsigned pinNum, float64 pinValue);
 
-void writeDigitalPort_extBuf(unsigned devNum, uInt32 *inputData);
-void writeDigitalPort_intBuf(unsigned devNum);
+void writeDigital_extBuf(unsigned devNum, uInt32 *inputData);
+void writeDigital_intBuf(unsigned devNum);
 #define writeDigitalPort_(args, a, b, ...)	\
   _Generic((b),							\
-           NoArg:	writeDigitalPort_intBuf,	\
-           default: writeDigitalPort_extBuf	\
+           NoArg:	writeDigital_intBuf,	\
+           default: writeDigital_extBuf	\
           )args
-#define writeDigitalPort(...) writeDigitalPort_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
+#define writeDigital(...) writeDigitalPort_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
 void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue);
 
 void writeDigitalPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState);
