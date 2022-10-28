@@ -162,9 +162,8 @@ typedef struct _NItask {
 */
 typedef struct _pinInfo {
 	bool				isPinValid;
-	unsigned int		pinNum;
 	IOmodes				pinIOMode;
-	//IO_Direction		pinDir;
+	unsigned int		pinID;
 	NItask				*pinTask;
 }pinInfo;
 
@@ -344,11 +343,61 @@ void quickDAQstart();
 void quickDAQstop();
 
 // read/write functions
-void readAnalog(unsigned devNum, float64 *outputData);
-void writeAnalog(unsigned devNum, float64 *inputData);
-void writeDigital(unsigned devNum, uInt32 *inputData);
-void writeDigitalPin (unsigned devNum, unsigned pinNum, bool bitState);
-void readCounterAngle(unsigned devNum, unsigned pinNum, float64 *outputData);
+typedef struct { unsigned _; } NoArg; // use compound literal to form a dummy value for _Generic, only its type matters
+#define NO_ARG ((const NoArg){0})
+	// Function calls that write to/read either from external buffers or internal buffers
+void readAnalog_extBuf(unsigned devNum, float64 *outputData);
+void readAnalog_intBuf(unsigned devNum);
+#define readAnalog_(args, a, b, ...)	\
+  _Generic((b),							\
+           NoArg:	readAnalog_intBuf,	\
+           default: readAnalog_extBuf	\
+          )args
+// pass copy of args as the first argument
+// add NO_ARG value, only its type matters
+// add dummy `~` argument to ensure that `...` in `foo_` catches something
+#define readAnalog(...) readAnalog_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
+inline float64 getAnalogInPin(unsigned devNum, unsigned pinNum);
+
+void writeAnalog_extBuf(unsigned devNum, float64 *inputData);
+void writeAnalog_intBuf(unsigned devNum);
+#define writeAnalog_(args, a, b, ...)	\
+  _Generic((b),							\
+           NoArg:	writeAnalog_intBuf,	\
+           default: writeAnalog_extBuf	\
+          )args
+#define writeAnalog(...) writeAnalog_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
+void setAnalogOutPin(unsigned devNum, unsigned pinNum, float64 pinValue);
+
+void writeDigitalPort_extBuf(unsigned devNum, uInt32 *inputData);
+void writeDigitalPort_intBuf(unsigned devNum);
+#define writeDigitalPort_(args, a, b, ...)	\
+  _Generic((b),							\
+           NoArg:	writeDigitalPort_intBuf,	\
+           default: writeDigitalPort_extBuf	\
+          )args
+#define writeDigitalPort(...) writeDigitalPort_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
+void setDigitalPort(unsigned devNum, unsigned portNum, uInt32 portValue);
+
+void writeDigitalPin_extBuf (unsigned devNum, unsigned pinNum, bool bitState);
+void writeDigitalPin_intBuf (unsigned devNum, unsigned pinNum);
+#define writeDigitalPin_(args, a, b, c, ...)	\
+  _Generic((c),							\
+           NoArg:	writeDigitalPin_intBuf,	\
+           default: writeDigitalPin_extBuf	\
+          )args
+#define writeDigitalPin(...) writeDigitalPin_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
+
+void readCounterAngle_extBuf(unsigned devNum, unsigned pinNum, float64 *outputData);
+void readCounterAngle_intBuf(unsigned devNum, unsigned pinNum);
+#define readCounterAngle_(args, a, b, c, ...)	\
+  _Generic((c),							\
+           NoArg:	writeDigitalPin_intBuf,	\
+           default: writeDigitalPin_extBuf	\
+          )args
+#define readCounterAngle(...) readCounterAngle_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
+float64 getCounterAngle(unsigned devNum, unsigned ctrNum);
+
 void syncSampling();
 
 // shutdown routines
