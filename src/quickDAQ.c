@@ -1055,17 +1055,19 @@ void setDigitalOutPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool b
 }
 
 // functions to read counter angle
-void readCounterAngle_intBuf(unsigned devNum, unsigned pinNum)
-{
-
-}
-
-void readCounterAngle_extBuf(unsigned devNum, unsigned pinNum, float64 *outputData)
+void readCounterAngle_intBuf(unsigned devNum, unsigned ctrNum)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
-		DAQmxErrChk(DAQmxReadCounterF64(DAQmxDevList[devNum].CItask[pinNum]->taskHandler, DAQmxDefaults.NIsamplesPerCh,
-			DAQmxDefaults.IOtimeout, (float64*)DAQmxDevList[devNum].CItask[pinNum]->dataBuffer, DAQmxDevList[devNum].CItask[pinNum]->pinCount, NULL, NULL));
-		memcpy(outputData, DAQmxDevList[devNum].CItask[pinNum]->dataBuffer, DAQmxDevList[devNum].CItask[pinNum]->pinCount * sizeof(float64));
+		DAQmxErrChk(DAQmxReadCounterF64(DAQmxDevList[devNum].CItask[ctrNum]->taskHandler, DAQmxDefaults.NIsamplesPerCh,
+			DAQmxDefaults.IOtimeout, (float64*)DAQmxDevList[devNum].CItask[ctrNum]->dataBuffer, DAQmxDevList[devNum].CItask[ctrNum]->pinCount, NULL, NULL));
+	}
+}
+
+void readCounterAngle_extBuf(unsigned devNum, unsigned ctrNum, float64 *outputData)
+{
+	if (quickDAQStatus == STATUS_RUNNING) {
+		readCounterAngle_intBuf(devNum, ctrNum);
+		memcpy(outputData, DAQmxDevList[devNum].CItask[ctrNum]->dataBuffer, DAQmxDevList[devNum].CItask[ctrNum]->pinCount * sizeof(float64));
 	}
 
 }

@@ -382,8 +382,8 @@ void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue);
 void writeDigitalPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState);
 void setDigitalOutPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState);
 
-void readCounterAngle_extBuf(unsigned devNum, unsigned pinNum, float64 *outputData);
-void readCounterAngle_intBuf(unsigned devNum, unsigned pinNum);
+void readCounterAngle_extBuf(unsigned devNum, unsigned ctrNum, float64 *outputData);
+void readCounterAngle_intBuf(unsigned devNum, unsigned ctrNum);
 #define readCounterAngle_(args, a, b, c, ...)	\
   _Generic((c),							\
            NoArg:	writeDigitalPin_intBuf,	\
