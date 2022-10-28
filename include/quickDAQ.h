@@ -154,7 +154,7 @@ typedef struct _NItask {
 	TaskHandle	taskHandler;
 	IOmodes		taskType;
 	unsigned	pinCount;
-	void* dataBuffer;
+	void*		dataBuffer;
 } NItask;
 
 /*!
@@ -379,14 +379,8 @@ void writeDigitalPort_intBuf(unsigned devNum);
 #define writeDigitalPort(...) writeDigitalPort_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
 void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue);
 
-void writeDigitalPin_extBuf (unsigned devNum, unsigned pinNum, bool bitState);
-void writeDigitalPin_intBuf (unsigned devNum, unsigned pinNum);
-#define writeDigitalPin_(args, a, b, c, ...)	\
-  _Generic((c),							\
-           NoArg:	writeDigitalPin_intBuf,	\
-           default: writeDigitalPin_extBuf	\
-          )args
-#define writeDigitalPin(...) writeDigitalPin_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
+void writeDigitalPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState);
+void setDigitalOutPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState);
 
 void readCounterAngle_extBuf(unsigned devNum, unsigned pinNum, float64 *outputData);
 void readCounterAngle_intBuf(unsigned devNum, unsigned pinNum);

@@ -1031,26 +1031,33 @@ void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue)
 }
 
 // functions to write a particular digital pin
-void writeDigitalPin_intBuf(unsigned devNum, unsigned pinNum)
+void writeDigitalPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState)
 {
+	if (quickDAQStatus == STATUS_RUNNING) {
+		unsigned portID = DAQmxDevList[devNum].DOpins[portNum].pinID;
+		uInt32* intBuf = DAQmxDevList[devNum].DOtask->dataBuffer;
+		setDigitalOutPin(devNum, portNum, pinNum, bitState);
+		DAQmxErrChk(DAQmxWriteDigitalU32(DAQmxDevList[devNum].DOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.DigiAutoStart,
+										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, &((uInt32*)DAQmxDevList[devNum].DOtask->dataBuffer)[portNum], NULL, NULL));
+	}
 }
 
-void writeDigitalPin_extBuf(unsigned devNum, unsigned pinNum, bool bitState)
+void setDigitalOutPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState)
 {
-	uInt32 myWord;
 	if (quickDAQStatus == STATUS_RUNNING) {
-		memcpy(&myWord, &(((uInt32*)DOtask->dataBuffer)[pinNum]), sizeof(myWord));
-		myWord = (bitState == TRUE) ? ((myWord & (0 << pinNum)) | (0x00000001 << pinNum)) : ((myWord & (0 << pinNum)) | (0x00000000 << pinNum));
-		memcpy(&myWord, &(((uInt32*)DOtask->dataBuffer)[pinNum]), sizeof(uInt32));
-		DAQmxErrChk(DAQmxWriteDigitalU32(DOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.DigiAutoStart,
-										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (uInt32*)DOtask->dataBuffer, NULL, NULL));
-
+		uInt32 myWord = 0;
+		uInt32 MASKWORD = (1 << pinNum);
+		unsigned portID = DAQmxDevList[devNum].DOpins[portNum].pinID;
+		uInt32* intBuf = DAQmxDevList[devNum].DOtask->dataBuffer;
+		intBuf[portID] &= ~MASKWORD;
+		intBuf[portID] |= (((uInt32)bitState) << pinNum) & MASKWORD;
 	}
 }
 
 // functions to read counter angle
 void readCounterAngle_intBuf(unsigned devNum, unsigned pinNum)
 {
+
 }
 
 void readCounterAngle_extBuf(unsigned devNum, unsigned pinNum, float64 *outputData)
