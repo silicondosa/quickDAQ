@@ -956,8 +956,8 @@ void quickDAQstop()
 void readAnalog_intBuf(unsigned devNum)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
-		DAQmxErrChk(DAQmxReadAnalogF64(AItask->taskHandler, DAQmxDefaults.NIAIsampsPerCh, DAQmxDefaults.IOtimeout ,
-									   DAQmxDefaults.AIdataLayout, (float64*)AItask->dataBuffer, AItask->pinCount, NULL, NULL));
+		DAQmxErrChk(DAQmxReadAnalogF64(DAQmxDevList[devNum].AItask->taskHandler, DAQmxDefaults.NIAIsampsPerCh, DAQmxDefaults.IOtimeout ,
+									   DAQmxDefaults.AIdataLayout, (float64*)DAQmxDevList[devNum].AItask->dataBuffer, DAQmxDevList[devNum].AItask->pinCount, NULL, NULL));
 	}
 }
 
@@ -965,7 +965,7 @@ void readAnalog_extBuf(unsigned devNum, float64 *outputData)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
 		readAnalog_intBuf(devNum);
-		memcpy(outputData, AItask->dataBuffer, AItask->pinCount * sizeof(float64));
+		memcpy(outputData, DAQmxDevList[devNum].AItask->dataBuffer, DAQmxDevList[devNum].AItask->pinCount * sizeof(float64));
 	}
 }
 
@@ -973,7 +973,7 @@ inline float64 getAnalogInPin(unsigned devNum, unsigned pinNum)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
 		unsigned pinID = DAQmxDevList[devNum].AIpins[pinNum].pinID;
-		return ((float64*)AItask->dataBuffer)[pinID];
+		return ((float64*)DAQmxDevList[devNum].AItask->dataBuffer)[pinID];
 	}
 	return NAN;
 }
@@ -982,15 +982,15 @@ inline float64 getAnalogInPin(unsigned devNum, unsigned pinNum)
 void writeAnalog_intBuf(unsigned devNum)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
-		DAQmxErrChk(DAQmxWriteAnalogF64(AOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.AnalogAutoStart,
-										DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (float64*)AOtask->dataBuffer, NULL, NULL));
+		DAQmxErrChk(DAQmxWriteAnalogF64(DAQmxDevList[devNum].AOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.AnalogAutoStart,
+										DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (float64*)DAQmxDevList[devNum].AOtask->dataBuffer, NULL, NULL));
 	}
 }
 
 void writeAnalog_extBuf(unsigned devNum, float64 *inputData)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
-		memcpy(AOtask->dataBuffer, inputData, AOtask->pinCount * sizeof(float64));
+		memcpy(DAQmxDevList[devNum].AOtask->dataBuffer, inputData, DAQmxDevList[devNum].AOtask->pinCount * sizeof(float64));
 		writeAnalog_intBuf(devNum);
 	}
 }
@@ -999,34 +999,33 @@ void setAnalogOutPin(unsigned devNum, unsigned pinNum, float64 pinValue)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
 		unsigned pinID = DAQmxDevList[devNum].AOpins[pinNum].pinID;
-		memcpy(&((float64*)AOtask->dataBuffer)[pinID], &pinValue, sizeof(float64));
+		memcpy(&(((float64*)DAQmxDevList[devNum].AOtask->dataBuffer)[pinID]), &pinValue, sizeof(float64));
 	}
 }
 
 // functions to write digital port state
-void writeDigital_extBuf(unsigned devNum, uInt32 *inputData)
-{
-	if (quickDAQStatus == STATUS_RUNNING) {
-		memcpy(DOtask->dataBuffer, inputData, DOtask->pinCount * sizeof(uInt32));
-		DAQmxErrChk(DAQmxWriteDigitalU32(DOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.DigiAutoStart,
-										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (uInt32*)DOtask->dataBuffer, NULL, NULL));
-	}
-
-}
-
 void writeDigital_intBuf(unsigned devNum)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
-		DAQmxErrChk(DAQmxWriteDigitalU32(DOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.DigiAutoStart,
-										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (uInt32*)DOtask->dataBuffer, NULL, NULL));
+		DAQmxErrChk(DAQmxWriteDigitalU32(DAQmxDevList[devNum].DOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.DigiAutoStart,
+										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, (uInt32*)DAQmxDevList[devNum].DOtask->dataBuffer, NULL, NULL));
 	}
+}
+
+void writeDigital_extBuf(unsigned devNum, uInt32 *inputData)
+{
+	if (quickDAQStatus == STATUS_RUNNING) {
+		memcpy(DAQmxDevList[devNum].DOtask->dataBuffer, inputData, DAQmxDevList[devNum].DOtask->pinCount * sizeof(uInt32));
+		writeDigital_intBuf(devNum);
+	}
+
 }
 
 void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
 		unsigned pinID = DAQmxDevList[devNum].DOpins[portNum].pinID;
-		memcpy(&((uInt32*)DOtask->dataBuffer)[pinID], &portValue, sizeof(uInt32));
+		memcpy(&(((uInt32*)DAQmxDevList[devNum].DOtask->dataBuffer)[pinID]), &portValue, sizeof(uInt32));
 	}
 }
 
@@ -1034,11 +1033,8 @@ void setDigitalOutPort(unsigned devNum, unsigned portNum, uInt32 portValue)
 void writeDigitalPin(unsigned devNum, unsigned portNum, unsigned pinNum, bool bitState)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
-		unsigned portID = DAQmxDevList[devNum].DOpins[portNum].pinID;
-		uInt32* intBuf = DAQmxDevList[devNum].DOtask->dataBuffer;
 		setDigitalOutPin(devNum, portNum, pinNum, bitState);
-		DAQmxErrChk(DAQmxWriteDigitalU32(DAQmxDevList[devNum].DOtask->taskHandler, DAQmxDefaults.NIsamplesPerCh, DAQmxDefaults.DigiAutoStart,
-										 DAQmxDefaults.IOtimeout, DAQmxDefaults.dataLayout, &(((uInt32*)DAQmxDevList[devNum].DOtask->dataBuffer)[portNum]), NULL, NULL));
+		writeDigital_intBuf(devNum);
 	}
 }
 
