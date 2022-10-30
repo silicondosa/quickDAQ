@@ -913,6 +913,9 @@ void quickDAQstop()
 		for (myElem = cListFirstElem(NItaskList); myElem != NULL; myElem = cListNextElem(NItaskList, myElem)) {
 			myTask = (NItask*)myElem->obj;
 			DAQmxErrChk(DAQmxStopTask(myTask->taskHandler));
+			if (myTask->dataBuffer != NULL) {
+				free(myTask->dataBuffer);
+			}
 			//fprintf(ERRSTREAM, "Stopped a DAQmx task\n");
 			switch (myTask->taskType)
 			{
@@ -1095,10 +1098,7 @@ int quickDAQTerminate()
 		thisTask = (NItask*)thisElem->obj;
 		DAQmxErrChk(DAQmxStopTask (thisTask->taskHandler));
 		DAQmxErrChk(DAQmxClearTask(thisTask->taskHandler));
-		
-		if (thisTask->dataBuffer != NULL) {
-			free(thisTask->dataBuffer);
-		}
+			
 		free(thisTask);
 		
 		cListUnlinkElem(NItaskList, thisElem);
