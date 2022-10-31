@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\bin\win\;..\lib\clinkedlist\include;..\lib\NI-DAQmx\include;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\bin\win32\;..\lib\clinkedlist\include;..\lib\NI-DAQmx\include;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <ShowIncludes>true</ShowIncludes>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -161,7 +161,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\quickDAQ.c" />
     <ClCompile Include="quickDAQ_test.cpp" />
   </ItemGroup>
   <ItemGroup>
