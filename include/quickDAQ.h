@@ -321,7 +321,9 @@ void DAQmxErrChk(int32 errCode);
 inline char* dev2string(char* strBuf, unsigned int devNum);
 char* pin2string(char* strbuf, unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
 inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
+inline int quickDAQGetError();
 inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
+inline int quickDAQGetStatus();
 
 // library initialization functions
 inline char* setDAQmxDevPrefix(char* newPrefix);

@@ -201,6 +201,11 @@ inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag)
 	return (int)quickDAQErrorCode;
 }
 
+inline int quickDAQGetError()
+{
+	return (int)quickDAQErrorCode;
+}
+
 inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
 {
 	switch (newStatus)
@@ -226,6 +231,11 @@ inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
 		break;
 	}
 	quickDAQStatus = newStatus;
+	return (int)quickDAQStatus;
+}
+
+inline int quickDAQGetStatus()
+{	
 	return (int)quickDAQStatus;
 }
 
