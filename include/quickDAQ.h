@@ -181,37 +181,37 @@ typedef struct _deviceInfo {
 
 	// Device I/O counts and their respective 'pinInfo'.
 	unsigned int		AIcnt;
-	pinInfo				AIpins[DAQMX_MAX_PIN_CNT];
+	pinInfo				*AIpins;
 	NItask				*AItask;
 	//unsigned			AItaskDataLen;
 	//bool				AItaskEnable;
 	
 	unsigned int		AOcnt;
-	pinInfo				AOpins[DAQMX_MAX_PIN_CNT];
+	pinInfo				*AOpins;
 	NItask				*AOtask;
 	//unsigned			AOtaskDataLen;
 	//bool				AOtaskEnable;
 	
 	unsigned int		DIcnt;
-	pinInfo				DIpins[DAQMX_MAX_PIN_CNT];
+	pinInfo				*DIpins;
 	NItask				*DItask;
 	//unsigned			DItaskDataLen;
 	//bool				DItaskEnable;
 	
 	unsigned int		DOcnt;
-	pinInfo				DOpins[DAQMX_MAX_PIN_CNT];
+	pinInfo				*DOpins;
 	NItask				*DOtask;
 	//unsigned			DOtaskDataLen;
 	//bool				DOtaskEnable;
 	
 	unsigned int		CIcnt;
-	pinInfo				CIpins[DAQMX_MAX_PIN_CNT];
+	pinInfo				*CIpins;
 	NItask				**CItask;
 	//unsigned			*CItaskDataLen;
 	//bool				*CItaskEnable;
 	
 	unsigned int		COcnt;
-	pinInfo				COpins[DAQMX_MAX_PIN_CNT];
+	pinInfo				*COpins;
 	NItask				**COtask;
 	//unsigned			*COtaskDataLen;
 	//bool				*COtaskEnable;

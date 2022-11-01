@@ -275,9 +275,20 @@ void enumerateNIDevices()
 	cLinkedList		*newDevList;
 	//cListElem		*newDevElem;
 	deviceInfo		*newDev;
+	unsigned pinID = 0, devID = 0;
 	
 	if (DAQmxEnumerated == 1) {
 		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Reenumuerating NI-DAQmx I/O devices.\n");
+		for (devID = 0; devID < DAQmxMaxCount + 1; devID++) {
+			if (DAQmxDevList[devID].isDevValid == TRUE) {
+				if (DAQmxDevList[devID].AIcnt > 0) free(DAQmxDevList[devID].AIpins);
+				if (DAQmxDevList[devID].AOcnt > 0) free(DAQmxDevList[devID].AOpins);
+				if (DAQmxDevList[devID].DIcnt > 0) free(DAQmxDevList[devID].DIpins);
+				if (DAQmxDevList[devID].DOcnt > 0) free(DAQmxDevList[devID].DOpins);
+				if (DAQmxDevList[devID].CIcnt > 0) free(DAQmxDevList[devID].CIpins);
+				if (DAQmxDevList[devID].COcnt > 0) free(DAQmxDevList[devID].COpins);
+			}
+		}
 		free(DAQmxDevList);
 		DAQmxDevList = NULL;
 	}
@@ -333,13 +344,68 @@ void enumerateNIDevices()
 		DAQmxMaxCount = (newDev->devNum > DAQmxMaxCount) ? newDev->devNum : DAQmxMaxCount;
 
 			// Enumerate and copy channel counts for each I/O typr into device object
+				// Also initialize pinInfo array for each type of pin
 		newDev->AIcnt = enumerateNIDevChannels(newDev->devNum, ANALOG_IN  , 0);
-		newDev->AOcnt = enumerateNIDevChannels(newDev->devNum, ANALOG_OUT  , 0);
-		newDev->DIcnt = enumerateNIDevChannels(newDev->devNum, DIGITAL_IN  , 0);
-		newDev->DOcnt = enumerateNIDevChannels(newDev->devNum, DIGITAL_OUT , 0);
-		newDev->CIcnt = enumerateNIDevChannels(newDev->devNum, CTR_ANGLE_IN, 0);
-		newDev->COcnt = enumerateNIDevChannels(newDev->devNum, CTR_TICK_OUT, 0);
+		if (newDev->AIcnt > 0) {
+			newDev->AIpins = (pinInfo*) malloc(newDev->AIcnt * sizeof(pinInfo));
+			for (pinID = 0; pinID < newDev->AIcnt; pinID++) {
+				newDev->AIpins[pinID].isPinValid = FALSE;
+			}
+		} else {
+			newDev->AIpins = NULL;
 		}
+		
+		newDev->AOcnt = enumerateNIDevChannels(newDev->devNum, ANALOG_OUT  , 0);
+		if (newDev->AOcnt > 0) {
+			newDev->AOpins = (pinInfo*) malloc(newDev->AOcnt * sizeof(pinInfo));
+			for (pinID = 0; pinID < newDev->AOcnt; pinID++) {
+				newDev->AOpins[pinID].isPinValid = FALSE;
+			}
+		} else {
+			newDev->AOpins = NULL;
+		}
+
+		newDev->DIcnt = enumerateNIDevChannels(newDev->devNum, DIGITAL_IN  , 0);
+		if (newDev->DIcnt > 0) {
+			newDev->DIpins = (pinInfo*) malloc(newDev->DIcnt * sizeof(pinInfo));
+			for (pinID = 0; pinID < newDev->DIcnt; pinID++) {
+				newDev->DIpins[pinID].isPinValid = FALSE;
+			}
+		} else {
+			newDev->DIpins = NULL;
+		}
+
+		newDev->DOcnt = enumerateNIDevChannels(newDev->devNum, DIGITAL_OUT , 0);
+		if (newDev->DOcnt > 0) {
+			newDev->DOpins = (pinInfo*) malloc(newDev->DOcnt * sizeof(pinInfo));
+			for (pinID = 0; pinID < newDev->DOcnt; pinID++) {
+				newDev->DOpins[pinID].isPinValid = FALSE;
+			}
+		} else {
+			newDev->DOpins = NULL;
+		}
+
+		newDev->CIcnt = enumerateNIDevChannels(newDev->devNum, CTR_ANGLE_IN, 0);
+		if (newDev->CIcnt > 0) {
+			newDev->CIpins = (pinInfo*) malloc(newDev->CIcnt * sizeof(pinInfo));
+			for (pinID = 0; pinID < newDev->CIcnt; pinID++) {
+				newDev->CIpins[pinID].isPinValid = FALSE;
+			}
+		} else {
+			newDev->CIpins = NULL;
+		}
+
+		newDev->COcnt = enumerateNIDevChannels(newDev->devNum, CTR_TICK_OUT, 0);
+		if (newDev->COcnt > 0) {
+			newDev->COpins = (pinInfo*) malloc(newDev->COcnt * sizeof(pinInfo));
+			for (pinID = 0; pinID < newDev->COcnt; pinID++) {
+				newDev->COpins[pinID].isPinValid = FALSE;
+			}
+		} else {
+			newDev->COpins = NULL;
+		}
+
+	}
 
 	// Create array of NI devices for fast access and clear linked list memory at the same time
 	DAQmxDevList = (deviceInfo*) malloc( sizeof(deviceInfo) * (DAQmxMaxCount+1) );
@@ -693,18 +759,21 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 						DAQmxErrChk(DAQmxCreateTask("", &(AItask->taskHandler)));
 						clkSourceTask = AItask;
 					}
-					AItask->pinCount++;
-					
-					// Device+Pin configuration
-					thisDev->AItask						= AItask;
-					thisDev->AIpins[pinNum].isPinValid	= TRUE;
-					thisDev->AIpins[pinNum].pinIOMode	= ioMode;
-					thisDev->AIpins[pinNum].pinID		= AItask->pinCount - 1;
-					thisDev->AIpins[pinNum].pinTask		= thisDev->AItask;
+							
+					if (thisDev->AIpins[pinNum].isPinValid == FALSE) {
+						AItask->pinCount++;
 
-					// DAQmx configuration
-					DAQmxErrChk(DAQmxCreateAIVoltageChan(thisDev->AItask->taskHandler, pinName            , ""                          , DAQmxDefaults.NIterminalConf,
-														 DAQmxDefaults.AImin		 , DAQmxDefaults.AImax, DAQmxDefaults.NImeasureUnits, NULL));
+						// Device+Pin configuration
+						thisDev->AItask = AItask;
+						thisDev->AIpins[pinNum].isPinValid = TRUE;
+						thisDev->AIpins[pinNum].pinIOMode = ioMode;
+						thisDev->AIpins[pinNum].pinID = AItask->pinCount - 1;
+						thisDev->AIpins[pinNum].pinTask = thisDev->AItask;
+
+						// DAQmx configuration
+						DAQmxErrChk(DAQmxCreateAIVoltageChan(thisDev->AItask->taskHandler, pinName, "", DAQmxDefaults.NIterminalConf,
+							DAQmxDefaults.AImin, DAQmxDefaults.AImax, DAQmxDefaults.NImeasureUnits, NULL));
+					}
 					sprintf_s(pinModeStr, sizeof(pinModeStr), "ANALOG IN");
 				}
 				else {
@@ -723,18 +792,21 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 						DAQmxErrChk(DAQmxCreateTask("", &(AOtask->taskHandler)));
 						clkSourceTask = AOtask;
 					}
-					AOtask->pinCount++;
-				
-					// Device+Pin configuration
-					thisDev->AOtask						= AOtask;
-					thisDev->AOpins[pinNum].isPinValid	= TRUE;
-					thisDev->AOpins[pinNum].pinIOMode	= ioMode;
-					thisDev->AOpins[pinNum].pinID		= AOtask->pinCount - 1;
-					thisDev->AOpins[pinNum].pinTask		= thisDev->AOtask;
 					
+					if (thisDev->AOpins[pinNum].isPinValid == FALSE) {
+						AOtask->pinCount++;
+
+					// Device+Pin configuration
+						thisDev->AOtask = AOtask;
+						thisDev->AOpins[pinNum].isPinValid = TRUE;
+						thisDev->AOpins[pinNum].pinIOMode = ioMode;
+						thisDev->AOpins[pinNum].pinID = AOtask->pinCount - 1;
+						thisDev->AOpins[pinNum].pinTask = thisDev->AOtask;
+
 					// DAQmx configuration
-					DAQmxErrChk(DAQmxCreateAOVoltageChan(thisDev->AOtask->taskHandler    , pinName            , ""                          ,
-														 DAQmxDefaults.AOmin			 , DAQmxDefaults.AOmax, DAQmxDefaults.NImeasureUnits, NULL));
+						DAQmxErrChk(DAQmxCreateAOVoltageChan(thisDev->AOtask->taskHandler, pinName, "",
+							DAQmxDefaults.AOmin, DAQmxDefaults.AOmax, DAQmxDefaults.NImeasureUnits, NULL));
+					}
 					sprintf_s(pinModeStr, sizeof(pinModeStr), "ANALOG OUT");
 				}
 				else {
@@ -757,17 +829,20 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 						DAQmxErrChk(DAQmxCreateTask("", &(DOtask->taskHandler)));
 						clkSourceTask = DOtask;
 					}
-					DOtask->pinCount++;
 					
+					if (thisDev->DOpins[pinNum].isPinValid == FALSE) {
+						DOtask->pinCount++;
+
 					// Device+Pin configuration
-					thisDev->DOtask						= DOtask;
-					thisDev->DOpins[pinNum].isPinValid	= TRUE;
-					thisDev->DOpins[pinNum].pinIOMode	= ioMode;
-					thisDev->DOpins[pinNum].pinID		= DOtask->pinCount - 1;
-					thisDev->DOpins[pinNum].pinTask		= thisDev->DOtask;
-					
+						thisDev->DOtask = DOtask;
+						thisDev->DOpins[pinNum].isPinValid = TRUE;
+						thisDev->DOpins[pinNum].pinIOMode = ioMode;
+						thisDev->DOpins[pinNum].pinID = DOtask->pinCount - 1;
+						thisDev->DOpins[pinNum].pinTask = thisDev->DOtask;
+
 					// DAQmx configuration
-					DAQmxErrChk(DAQmxCreateDOChan(thisDev->DOtask->taskHandler, pinName, "", DAQmxDefaults.NIdigiLineGroup));
+						DAQmxErrChk(DAQmxCreateDOChan(thisDev->DOtask->taskHandler, pinName, "", DAQmxDefaults.NIdigiLineGroup));
+					}
 					sprintf_s(pinModeStr, sizeof(pinModeStr), "DIGITAL OUT");
 				} 
 				else {
@@ -782,23 +857,27 @@ void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum)
 						CItaskList = (cLinkedList*)malloc(sizeof(cLinkedList));
 						cListInit(CItaskList);
 					}
-					clkSourceTask = (NItask*)malloc(sizeof(NItask));
-					clkSourceTask->taskType = CTR_ANGLE_IN;
-					clkSourceTask->dataBuffer = NULL;
-					DAQmxErrChk(DAQmxCreateTask("", &(clkSourceTask->taskHandler)));
-					cListAppend(CItaskList, (void*)clkSourceTask);
-					clkSourceTask->pinCount = 1;
 					
+					if (thisDev->CIpins[pinNum].isPinValid == FALSE) {
+						clkSourceTask = (NItask*)malloc(sizeof(NItask));
+						clkSourceTask->taskType = CTR_ANGLE_IN;
+						clkSourceTask->dataBuffer = NULL;
+						DAQmxErrChk(DAQmxCreateTask("", &(clkSourceTask->taskHandler)));
+						cListAppend(CItaskList, (void*)clkSourceTask);
+						clkSourceTask->pinCount = 1;
+
 					// Device+Pin configuration
-					thisDev->CItask[pinNum]				= clkSourceTask;
-					thisDev->CIpins[pinNum].isPinValid	= TRUE;
-					thisDev->CIpins[pinNum].pinIOMode	= ioMode;
-					thisDev->CIpins[pinNum].pinID		= 0;
-					thisDev->CIpins[pinNum].pinTask		= thisDev->CItask[pinNum];
-					
-					DAQmxErrChk(DAQmxCreateCIAngEncoderChan(thisDev->CItask[pinNum]->taskHandler , pinName             , "", DAQmxDefaults.NIctrDecodeMode,
-															DAQmxDefaults.ZidxEnable			, DAQmxDefaults.ZidxValue , DAQmxDefaults.ZidxPhase,
-															DAQmxDefaults.NIctrUnits			, DAQmxDefaults.encoderPPR, DAQmxDefaults.angleInit, ""));
+						thisDev->CItask[pinNum] = clkSourceTask;
+						thisDev->CIpins[pinNum].isPinValid = TRUE;
+						thisDev->CIpins[pinNum].pinIOMode = ioMode;
+						thisDev->CIpins[pinNum].pinID = 0;
+						thisDev->CIpins[pinNum].pinTask = thisDev->CItask[pinNum];
+
+					// DAQmx configuration
+						DAQmxErrChk(DAQmxCreateCIAngEncoderChan(thisDev->CItask[pinNum]->taskHandler, pinName, "", DAQmxDefaults.NIctrDecodeMode,
+							DAQmxDefaults.ZidxEnable, DAQmxDefaults.ZidxValue, DAQmxDefaults.ZidxPhase,
+							DAQmxDefaults.NIctrUnits, DAQmxDefaults.encoderPPR, DAQmxDefaults.angleInit, ""));
+					}
 					sprintf_s(pinModeStr, sizeof(pinModeStr), "COUNTER(ANGLE) IN");
 				}
 				else {
@@ -1093,6 +1172,7 @@ int quickDAQTerminate()
 	cListElem* thisElem = cListFirstElem(NItaskList);
 	cListElem *nextElem = cListNextElem (NItaskList, thisElem);
 	NItask* thisTask = NULL;
+	unsigned devID;
 
 	while(thisElem != NULL) {
 		thisTask = (NItask*)thisElem->obj;
@@ -1123,6 +1203,16 @@ int quickDAQTerminate()
 	DAQmxEnumerated = 0;
 
 	// Free device list memory
+	for (devID = 0; devID < DAQmxMaxCount + 1; devID++) {
+		if (DAQmxDevList[devID].isDevValid == TRUE) {
+			if (DAQmxDevList[devID].AIcnt > 0) free(DAQmxDevList[devID].AIpins);
+			if (DAQmxDevList[devID].AOcnt > 0) free(DAQmxDevList[devID].AOpins);
+			if (DAQmxDevList[devID].DIcnt > 0) free(DAQmxDevList[devID].DIpins);
+			if (DAQmxDevList[devID].DOcnt > 0) free(DAQmxDevList[devID].DOpins);
+			if (DAQmxDevList[devID].CIcnt > 0) free(DAQmxDevList[devID].CIpins);
+			if (DAQmxDevList[devID].COcnt > 0) free(DAQmxDevList[devID].COpins);
+		}
+	}
 	free(DAQmxDevList);
 	DAQmxDevList = NULL;
 	return 0;

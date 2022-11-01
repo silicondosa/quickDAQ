@@ -6,8 +6,15 @@
 
 int main()
 {
-    printf("Hello World!\n");
-	enumerateNIDevices();
+    printf("QuickDAQ tester\n");
+	quickDAQinit();
+	printf("QuickDAQ library initialized: Press any key to continue...\n");
+	getchar();
+	
+	// More test code can go here
+
+	quickDAQTerminate();
+	printf("QuickDAQ library termiated: Press any key to quit test.\n");
 	getchar();
 }
 
