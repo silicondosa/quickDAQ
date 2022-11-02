@@ -1,3 +1,4 @@
+/// See LICENSE.md at root of repository for copyright information
 // quickDAQ_test.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 

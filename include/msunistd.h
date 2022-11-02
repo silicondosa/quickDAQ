@@ -1,3 +1,4 @@
+/// See LICENSE.md at root of repository for copyright information
 #pragma once
 #ifndef _MSUNISTD_H
 #define _MSUNISTD_H

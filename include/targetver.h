@@ -1,3 +1,4 @@
+/// See LICENSE.md at root of repository for copyright information
 #pragma once
 
 // Including SDKDDKVer.h defines the highest available Windows platform.

@@ -1,3 +1,4 @@
+/// See LICENSE.md at root of repository for copyright information
 #include <stdio.h>
 #include <quickDAQ.h>
 

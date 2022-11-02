@@ -1,3 +1,4 @@
+/// See LICENSE.md at root of repository for copyright information
 #include "stdafx.h"
 #include <stdio.h>
 #include <cLinkedList.h>
