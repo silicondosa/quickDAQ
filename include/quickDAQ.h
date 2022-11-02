@@ -318,15 +318,15 @@ extern cLinkedList	*CItaskList, *COtaskList;
 //--------------------------------
 // support functions
 void DAQmxErrChk(int32 errCode);
-inline char* dev2string(char* strBuf, unsigned int devNum);
+char* dev2string(char* strBuf, unsigned int devNum);
 char* pin2string(char* strbuf, unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
-inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
-inline int quickDAQGetError();
-inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
-inline int quickDAQGetStatus();
+int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
+int quickDAQGetError();
+int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
+int quickDAQGetStatus();
 
 // library initialization functions
-inline char* setDAQmxDevPrefix(char* newPrefix);
+char* setDAQmxDevPrefix(char* newPrefix);
 void enumerateNIDevices();
 unsigned int enumerateNIDevChannels(unsigned int myDev, IOmodes IOtype, unsigned int printFlag);
 unsigned int enumerateNIDevTerminals(unsigned int deviceNumber);
@@ -334,8 +334,8 @@ void initDevTaskFlags();
 void quickDAQinit();
 
 // configuration functions
-inline void setActiveEdgeRising();
-inline void setActiveEdgeFalling();
+void setActiveEdgeRising();
+void setActiveEdgeFalling();
 void setSampleClockTiming(samplingModes sampleMode, float64 samplingRate, char* triggerSource, triggerModes triggerEdge, uInt64 numDataPointsPerSample, bool printFlag);
 bool setClockSource(unsigned devNum, int pinNum, IOmodes ioMode);
 void pinMode(unsigned int devNum, IOmodes ioMode, unsigned int pinNum);
@@ -359,7 +359,7 @@ void readAnalog_intBuf(unsigned devNum);
 // add NO_ARG value, only its type matters
 // add dummy `~` argument to ensure that `...` in `foo_` catches something
 #define readAnalog(...) readAnalog_((__VA_ARGS__), __VA_ARGS__, NO_ARG, ~)
-inline float64 getAnalogInPin(unsigned devNum, unsigned pinNum);
+float64 getAnalogInPin(unsigned devNum, unsigned pinNum);
 
 void writeAnalog_extBuf(unsigned devNum, float64 *inputData);
 void writeAnalog_intBuf(unsigned devNum);
