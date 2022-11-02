@@ -52,5 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\win32\quickDAQ.pdb" />
+    <None Include="..\..\myosyn\lib\quickDAQ\bin\win32\quickDAQ.idb" />
   </ItemGroup>
 </Project>

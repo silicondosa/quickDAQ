@@ -388,7 +388,7 @@ char* pin2string(char* strbuf, unsigned int devNum, IOmodes ioMode, unsigned int
  * @param printFlag controls whether or not the error code is printed to STDERR
  * @return int Value of newError (which mirrors the global quickDAQErrorCode)
  */
-inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
+int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
 
 /**
  * @brief Gets the value of global variable quickDAQErrorCode.
@@ -405,7 +405,7 @@ inline int quickDAQGetError();
  * @param printFlag controls whether or not the current state is printed to STDERR
  * @return int Value of newStatus (which mirrors the global quickDAQStatus)
  */
-inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
+int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
 
 // library initialization functions
 /**
@@ -414,7 +414,7 @@ inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
  * @param newPrefix pointer to a buffer that holds the new prefix string we would like to use.
  * @return char* The same pointer that we passed in, used for API flexibility.
  */
-inline char* setDAQmxDevPrefix(char* newPrefix);
+char* setDAQmxDevPrefix(char* newPrefix);
 
 /**
  * @brief Gets a list of all the NI Devices connected to the system that
@@ -463,14 +463,14 @@ void quickDAQinit();
  * 
  * Sets the global variable DAQmxTriggerEdge to DAQmx_Val_Rising.
  */
-inline void setActiveEdgeRising();
+void setActiveEdgeRising();
 
 /**
  * @brief Sets the system to trigger on the rising edge.
  * 
  * Sets the global variable DAQmxTriggerEdge to DAQmx_Val_Falling.
  */
-inline void setActiveEdgeFalling();
+void setActiveEdgeFalling();
 
 /**
  * @brief Set the Sample Clock Timing mode.
@@ -565,7 +565,7 @@ void readAnalog_intBuf(unsigned devNum);
  * @param pinNum pin to read from on the device
  * @return float64 value that we just read.
  */
-inline float64 getAnalogInPin(unsigned devNum, unsigned pinNum);
+float64 getAnalogInPin(unsigned devNum, unsigned pinNum);
 
 void writeAnalog_extBuf(unsigned devNum, float64 *inputData);
 void writeAnalog_intBuf(unsigned devNum);

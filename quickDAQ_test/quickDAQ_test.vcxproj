@@ -179,6 +179,7 @@
     <Library Include="..\lib\NI-DAQmx\NIDAQmx.lib" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\myosyn\lib\quickDAQ\bin\win32\quickDAQ.idb" />
     <None Include="..\bin\win32\quickDAQ.pdb" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
