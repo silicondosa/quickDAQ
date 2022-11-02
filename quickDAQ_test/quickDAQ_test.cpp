@@ -8,7 +8,7 @@ int main()
 {
     printf("QuickDAQ tester\n");
 	quickDAQinit();
-	printf("QuickDAQ library initialized: Press any key to continue...\n");
+	printf("QuickDAQ library initialized (status: %d): Press any key to continue...\n", quickDAQgetStatus());
 	getchar();
 	
 	// More test code can go here

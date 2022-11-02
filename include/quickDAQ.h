@@ -323,7 +323,7 @@ char* pin2string(char* strbuf, unsigned int devNum, IOmodes ioMode, unsigned int
 int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
 int quickDAQGetError();
 int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag);
-int quickDAQGetStatus();
+int quickDAQgetStatus();
 
 // library initialization functions
 char* setDAQmxDevPrefix(char* newPrefix);

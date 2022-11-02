@@ -234,7 +234,7 @@ inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
 	return (int)quickDAQStatus;
 }
 
-inline int quickDAQGetStatus()
+int quickDAQgetStatus()
 {	
 	return (int)quickDAQStatus;
 }
