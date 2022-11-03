@@ -397,6 +397,8 @@ int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag);
  */
 inline int quickDAQGetError();
 
+int quickDAQgetStatus();
+
 /**
  * @brief Sets the global status variable quickDAQStatus, using the code in newStatus.
  * Able to print status to STDERR.
