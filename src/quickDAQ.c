@@ -122,7 +122,7 @@ void DAQmxErrChk(int32 errCode)
 	}
 }
 
-inline char* dev2string(char* strBuf, unsigned int devNum)
+/*inline*/ char* dev2string(char* strBuf, unsigned int devNum)
 {
 	snprintf(strBuf, DAQMX_MAX_DEV_STR_LEN, "%s%d", DAQmxDevPrefix, devNum);
 	return strBuf;
@@ -159,7 +159,7 @@ char* pin2string(char* strbuf, unsigned int devNum, IOmodes ioMode, unsigned int
 	return strbuf;
 }
 
-inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag)
+/*inline*/ int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag)
 {
 	switch (newError)
 	{
@@ -201,12 +201,12 @@ inline int quickDAQSetError(quickDAQErrorCodes newError, bool printFlag)
 	return (int)quickDAQErrorCode;
 }
 
-inline int quickDAQGetError()
+/*inline*/ int quickDAQGetError()
 {
 	return (int)quickDAQErrorCode;
 }
 
-inline int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
+/*inline*/ int quickDAQSetStatus(quickDAQStatusModes newStatus, bool printFlag)
 {
 	switch (newStatus)
 	{
@@ -264,7 +264,7 @@ long quickDAQGetSamplingMode(char* sampleModeString)
 }
 
 // initialization function definitions
-inline char* setDAQmxDevPrefix(char* newPrefix)
+/*inline*/ char* setDAQmxDevPrefix(char* newPrefix)
 {
 	if (quickDAQStatus != STATUS_NASCENT || DAQmxEnumerated == 1) {
 		fprintf(ERRSTREAM, "QuickDAQ library: Warning: Before setting new NI-DAQmx device prefix, library must be reset and devices should NOT be enumerated.\n");
@@ -623,13 +623,13 @@ void quickDAQinit()
 }
 
 // configuration function definitions
-inline void setActiveEdgeRising()
+/*inline*/ void setActiveEdgeRising()
 {
 	if (quickDAQStatus <= STATUS_INIT && quickDAQStatus != STATUS_UNKNOWN)
 		DAQmxTriggerEdge = DAQmx_Val_Rising;
 }
 
-inline void setActiveEdgeFalling()
+/*inline*/ void setActiveEdgeFalling()
 {
 	if (quickDAQStatus <= STATUS_INIT && quickDAQStatus != STATUS_UNKNOWN)
 		DAQmxTriggerEdge = DAQmx_Val_Falling;
@@ -1061,7 +1061,7 @@ void readAnalog_extBuf(unsigned devNum, float64 *outputData)
 	}
 }
 
-inline float64 getAnalogInPin(unsigned devNum, unsigned pinNum)
+/*inline*/ float64 getAnalogInPin(unsigned devNum, unsigned pinNum)
 {
 	if (quickDAQStatus == STATUS_RUNNING) {
 		unsigned pinID = DAQmxDevList[devNum].AIpins[pinNum].pinID;
