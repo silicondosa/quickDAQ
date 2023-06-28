@@ -1,3 +1,0 @@
-[submodule "lib/cLinkedList"]
-	path = lib/cLinkedList
-	url = git@github.com:silicondosa/cLinkedList.git
