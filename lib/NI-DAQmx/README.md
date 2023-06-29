@@ -1,0 +1,6 @@
+## National Instruments DAQmx support for QuickDAQ
+While QuickDAQ is designed to be modular, it was first designed to use National Instruments (NI) data-acquisition hardware. The NI-DAQmx C API allows us to interface with NI hardware. QuickDAQ intelligently uses the NI-DAQmx C API to provision National Instrument hardware resources based on user function calls.
+
+To use NI hardware with QuickDAQ, you might also need to install NI-DAQmx on your computer (download the latest version [here](https://www.ni.com/en-us/support/downloads/drivers/download.ni-daq-mx.html)).
+
+The NI-DAQmx (2023 Q2 release) C API static libraries (for Windows systems) and header files are bundled with this library for user convenience. However, by using the NI-DAQmx C API (that is, if you use QuickDAQ with NI hardware), you agree to the National Instruments Software License Agreement (see `NI_software_license_agreement_en_2023.pdf`) and all other agreements presented to you when installing NI-DAQmx on your computer(s).
