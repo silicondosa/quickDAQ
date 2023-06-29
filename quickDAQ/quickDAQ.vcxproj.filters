@@ -45,8 +45,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\lib\NI-DAQmx\NIDAQmx.lib" />
-    <Library Include="..\lib\clinkedlist\bin\cLinkedList.lib" />
-  </ItemGroup>
 </Project>

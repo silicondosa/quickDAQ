@@ -45,13 +45,4 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\lib\NI-DAQmx\NIDAQmx.lib" />
-    <Library Include="..\lib\clinkedlist\bin\cLinkedList.lib" />
-    <Library Include="..\bin\win32\quickDAQ.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\bin\win32\quickDAQ.pdb" />
-    <None Include="..\..\myosyn\lib\quickDAQ\bin\win32\quickDAQ.idb" />
-  </ItemGroup>
 </Project>

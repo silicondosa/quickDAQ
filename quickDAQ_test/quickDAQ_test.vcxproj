@@ -173,15 +173,6 @@
     <ClInclude Include="..\lib\NI-DAQmx\include\ansi_c.h" />
     <ClInclude Include="..\lib\NI-DAQmx\include\NIDAQmx.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\bin\win32\quickDAQ.lib" />
-    <Library Include="..\lib\clinkedlist\bin\cLinkedList.lib" />
-    <Library Include="..\lib\NI-DAQmx\NIDAQmx.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\myosyn\lib\quickDAQ\bin\win32\quickDAQ.idb" />
-    <None Include="..\bin\win32\quickDAQ.pdb" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
