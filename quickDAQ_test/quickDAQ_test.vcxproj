@@ -102,7 +102,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\bin\msvc\$(Platform)\;..\lib\NI-DAQmx\bin\msvc\$(Platform)\;..\lib\clinkedlist\bin\msvc\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\bin\msvc\$(Platform)\quickDAQ.lib;..\lib\NI-DAQmx\bin\msvc\$(Platform)\NIDAQmx.lib;..\lib\clinkedlist\bin\msvc\$(Platform)\cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>quickDAQ.lib;NIDAQmx.lib;cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -123,7 +123,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\bin\msvc\$(Platform)\;..\lib\NI-DAQmx\bin\msvc\$(Platform)\;..\lib\clinkedlist\bin\msvc\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\bin\msvc\$(Platform)\quickDAQ.lib;..\lib\NI-DAQmx\bin\msvc\$(Platform)\NIDAQmx.lib;..\lib\clinkedlist\bin\msvc\$(Platform)\cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>quickDAQ.lib;NIDAQmx.lib;cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,7 +148,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\bin\msvc\$(Platform)\;..\lib\NI-DAQmx\bin\msvc\$(Platform)\;..\lib\clinkedlist\bin\msvc\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\bin\msvc\$(Platform)\quickDAQ.lib;..\lib\NI-DAQmx\bin\msvc\$(Platform)\NIDAQmx.lib;..\lib\clinkedlist\bin\msvc\$(Platform)\cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>quickDAQ.lib;NIDAQmx.lib;cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -173,7 +173,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\bin\msvc\$(Platform)\;..\lib\NI-DAQmx\bin\msvc\$(Platform)\;..\lib\clinkedlist\bin\msvc\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\bin\msvc\$(Platform)\quickDAQ.lib;..\lib\NI-DAQmx\bin\msvc\$(Platform)\NIDAQmx.lib;..\lib\clinkedlist\bin\msvc\$(Platform)\cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>quickDAQ.lib;NIDAQmx.lib;cLinkedList.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
