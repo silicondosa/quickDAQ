@@ -1,6 +1,9 @@
 # QuickDAQ
 QuickDAQ is an easy-to-use C/C++ wrapper for the National Instruments (NI) DAQmx C API to perform data acquisition using NI hardware. It will also support the [USC Valero Lab](https://valerolab.org/) DAQ board and Arduino profiles for the control of tendon-driven robots.
 
+## [IMPORTANT] Cloning the repo with submodules
+This library is designed to use some dependencies that are linked to the repo as submodules. So, use the `git clone --recurse-submodules <remote-URL>` command when cloning the repo.
+
 ## Prerequisites (bundled in `lib/`)
 - **cLinkedList**: A simple linked list manager for C/C++.
 - **NI DAQmx C API** _(if using NI hardware)_: C API and drivers to interface with NI PCI(e)/PXI(e)/USB data acquition hardware. More info about support and licensing in [this section](#National-Instruments-DAQmx-support-and-licenseing-for-use-with-QuickDAQ) of the README.
